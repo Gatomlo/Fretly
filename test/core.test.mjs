@@ -2,7 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { isChord, transposeChord } from '../public/js/music.js';
 import { getChord, chordKey, fretsKey } from '../public/js/chords.js';
-import { parseSong, convertChordsOverLyrics } from '../public/js/chordpro.js';
+import { parseSong, convertChordsOverLyrics, lyricLines, fold } from '../public/js/chordpro.js';
+import { suggestCapo, chordCost } from '../public/js/capo.js';
+import { createGuide } from '../public/js/guided.js';
 import { detectPitch } from '../public/js/pitch.js';
 
 test('reconnaissance des accords', () => {
@@ -64,4 +66,30 @@ test('YIN détecte 110 Hz', () => {
   const buf = new Float32Array(4096).map((_, i) => 0.5 * Math.sin((2 * Math.PI * 110 * i) / sr));
   assert.ok(Math.abs(detectPitch(buf, sr) - 110) < 0.5);
   assert.equal(detectPitch(new Float32Array(4096), sr), null);
+});
+
+test('capo malin : des accords de Lab majeur deviennent faciles avec le capo 1', () => {
+  const chords = ['Ab', 'Eb', 'Fm', 'Db', 'Ab', 'Eb'];
+  const [best] = suggestCapo(chords);
+  assert.equal(best.capo, 1);
+  assert.deepEqual(best.shapes.slice(0, 2), ['G', 'D']);
+  assert.ok(chordCost('F') > chordCost('G'));
+  assert.deepEqual(suggestCapo([]), []);
+});
+
+test('accordage guidé : avance corde par corde puis termine', () => {
+  const g = createGuide(3);
+  assert.equal(g.current, 0);
+  assert.equal(g.advance(), 1);
+  assert.equal(g.advance(), 2);
+  assert.equal(g.advance(), null);
+  assert.ok(g.finished);
+  assert.deepEqual([...g.done], [0, 1, 2]);
+});
+
+test('paroles : lignes sans accords, recherche insensible aux accents', () => {
+  const lines = lyricLines(['{c: Refrain}', '[Am]Il était [G]une fois', '', '[C]Été indien'].join('\n'));
+  assert.deepEqual(lines, ['Il était une fois', 'Été indien']);
+  assert.equal(fold('Été Indien'), 'ete indien');
+  assert.equal(fold('Œuvre').length, 'Œuvre'.length);
 });

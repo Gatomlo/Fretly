@@ -1,10 +1,10 @@
-const CACHE = 'fretly-v2';
+const CACHE = 'fretly-v3';
 const SHELL = [
   './', 'index.html', 'manifest.webmanifest', 'icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'css/style.css',
   'js/app.js', 'js/music.js', 'js/chords.js', 'js/chordpro.js', 'js/pitch.js', 'js/diagram.js',
-  'js/audio.js', 'js/store.js', 'js/seed.js', 'js/chordDialog.js', 'js/cover.js',
+  'js/audio.js', 'js/store.js', 'js/seed.js', 'js/chordDialog.js', 'js/cover.js', 'js/capo.js', 'js/guided.js',
   'js/views/tuner.js', 'js/views/songs.js', 'js/views/editor.js', 'js/views/bible.js',
-  'js/views/settings.js', 'js/views/reader.js', 'js/views/sets.js', 'js/views/set.js',
+  'js/views/settings.js', 'js/views/reader.js', 'js/views/sets.js', 'js/views/set.js', 'js/views/print.js',
 ];
 
 self.addEventListener('install', (e) => {

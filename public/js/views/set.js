@@ -8,7 +8,7 @@ export function mount(root, id) {
   root.innerHTML = `
     <section class="page">
       <div class="page-head"><a class="btn icon" href="#/sets" aria-label="Retour">‹</a><h1 id="name" contenteditable="plaintext-only" spellcheck="false"></h1></div>
-      <div class="row"><a class="btn primary big" id="play" href="#">▶ Jouer la setlist</a></div>
+      <div class="row"><a class="btn primary big" id="play" href="#">▶ Jouer la setlist</a><a class="btn big" id="print" href="#/print/set/${id}">🖨 Imprimer / PDF</a></div>
       <ul class="list" id="list"></ul>
       <details class="adder"><summary class="btn">＋ Ajouter une chanson</summary>
         <input type="search" id="q" placeholder="Rechercher…" aria-label="Rechercher une chanson">
@@ -25,6 +25,7 @@ export function mount(root, id) {
     const byId = new Map(songs.list().map((s) => [s.id, s]));
     const ids = set.songIds.filter((x) => byId.has(x));
     $('#play').style.display = ids.length ? '' : 'none';
+    $('#print').style.display = ids.length ? '' : 'none';
     if (ids.length) $('#play').href = `#/song/${ids[0]}?set=${set.id}`;
     $('#list').innerHTML = ids.length
       ? ids.map((sid, i) => {

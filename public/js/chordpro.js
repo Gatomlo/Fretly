@@ -68,3 +68,14 @@ export function convertChordsOverLyrics(text) {
   }
   return out.join('\n');
 }
+
+// Lignes de paroles seules (sans accords ni sections) : pour la recherche plein texte
+export function lyricLines(body) {
+  return parseSong(body).lines
+    .filter((l) => l.type === 'line')
+    .map((l) => l.segs.map((s) => s.text).join('').replace(/\s+/g, ' ').trim())
+    .filter(Boolean);
+}
+
+// Minuscules sans accents, longueur conservée (permet de retrouver la position dans le texte d'origine)
+export const fold = (s) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();

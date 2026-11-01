@@ -1,6 +1,32 @@
 import { songs, settings } from '../store.js';
 import { esc } from '../chordDialog.js';
 import { cover } from '../cover.js';
+import { lyricLines, fold } from '../chordpro.js';
+
+// Index de recherche par chanson (titre, artiste, étiquettes, paroles), recalculé seulement si la chanson change
+const index = new Map();
+function indexOf(s) {
+  const key = `${s.id}:${s.updated}`;
+  let v = index.get(key);
+  if (!v) {
+    const lines = lyricLines(s.body || '');
+    v = { lines, head: fold(`${s.title} ${s.artist || ''} ${(s.tags || []).join(' ')}`), text: fold(lines.join(' / ')) };
+    index.set(key, v);
+  }
+  return v;
+}
+const words = (q) => fold(q).split(/\s+/).filter(Boolean);
+
+// Extrait de paroles autour du premier mot trouvé uniquement dans les paroles
+function snippet(s, ws) {
+  const v = indexOf(s);
+  const w = ws.find((x) => !v.head.includes(x));
+  if (!w) return '';
+  const line = v.lines.find((l) => fold(l).includes(w));
+  if (!line) return '';
+  const at = fold(line).indexOf(w);
+  return `<span class="snip">« ${esc(line.slice(0, at))}<mark>${esc(line.slice(at, at + w.length))}</mark>${esc(line.slice(at + w.length))} »</span>`;
+}
 
 const greeting = () => { const h = new Date().getHours(); return h < 5 || h >= 18 ? 'Bonsoir' : 'Bonjour'; };
 const SORTS = { title: 'Titre', artist: 'Artiste', recent: 'Joués récemment', key: 'Tonalité' };
@@ -23,7 +49,7 @@ export function mount(root) {
       </div>
       <div id="hero"></div>
       <div class="row tools">
-        <input type="search" id="q" placeholder="Rechercher un titre, un artiste…" aria-label="Rechercher">
+        <input type="search" id="q" placeholder="Titre, artiste ou paroles…" aria-label="Rechercher">
         <select id="sort" aria-label="Trier par">${Object.entries(SORTS).map(([k, l]) => `<option value="${k}"${k === sort ? ' selected' : ''}>${l}</option>`).join('')}</select>
       </div>
       <div class="chips" id="chips"></div>
@@ -49,13 +75,14 @@ export function mount(root) {
   function draw() {
     $('chips').innerHTML = [['all', 'Tous'], ['fav', '★ Favoris'], ...tags.map((t) => [t, `#${t}`])]
       .map(([k, l]) => `<button class="chip${k === filter ? ' on' : ''}" data-f="${esc(k)}">${esc(l)}</button>`).join('');
-    const needle = q.trim().toLowerCase();
+    const needle = q.trim();
+    const ws = words(q);
     const items = songs.list()
-      .filter((s) => (!needle || `${s.title} ${s.artist}`.toLowerCase().includes(needle))
+      .filter((s) => (!ws.length || ws.every((w) => indexOf(s).head.includes(w) || indexOf(s).text.includes(w)))
         && (filter === 'all' || (filter === 'fav' ? s.fav : (s.tags || []).includes(filter))))
       .sort(COMPARE[sort]);
     $('list').innerHTML = items.length
-      ? items.map((s) => `<li><a class="song" href="#/song/${s.id}">${cover(s)}<span class="meta"><b>${esc(s.title)}</b><span class="muted">${esc(s.artist || '')}</span></span>${s.key ? `<em class="tag">${esc(s.key)}</em>` : ''}</a><button class="btn icon star${s.fav ? ' on' : ''}" data-fav="${s.id}" aria-label="Favori" aria-pressed="${!!s.fav}">${s.fav ? '★' : '☆'}</button><a class="btn icon" href="#/song/${s.id}/edit" aria-label="Modifier">✎</a></li>`).join('')
+      ? items.map((s) => `<li><a class="song" href="#/song/${s.id}">${cover(s)}<span class="meta"><b>${esc(s.title)}</b><span class="muted">${esc(s.artist || '')}</span>${ws.length ? snippet(s, ws) : ''}</span>${s.key ? `<em class="tag">${esc(s.key)}</em>` : ''}</a><button class="btn icon star${s.fav ? ' on' : ''}" data-fav="${s.id}" aria-label="Favori" aria-pressed="${!!s.fav}">${s.fav ? '★' : '☆'}</button><a class="btn icon" href="#/song/${s.id}/edit" aria-label="Modifier">✎</a></li>`).join('')
       : `<li class="empty-state"><div>🎶</div><b>${needle || filter !== 'all' ? 'Aucun résultat' : 'Votre carnet est vide'}</b><span class="muted">${needle || filter !== 'all' ? 'Essayez un autre filtre.' : 'Ajoutez une chanson ou importez-en une depuis boiteachansons.net.'}</span></li>`;
   }
   $('q').oninput = (e) => { q = e.target.value; draw(); };

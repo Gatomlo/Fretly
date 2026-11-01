@@ -6,6 +6,7 @@ import { getChord } from '../chords.js';
 import { cover, tintOf } from '../cover.js';
 import { chordSvg } from '../diagram.js';
 import { createMetronome } from '../audio.js';
+import { suggestCapo, easeLabel } from '../capo.js';
 
 const NEXT_KEYS = ['ArrowRight', 'ArrowDown', 'PageDown'];
 const PREV_KEYS = ['ArrowLeft', 'ArrowUp', 'PageUp'];
@@ -285,6 +286,15 @@ export function mount(root, id, setId) {
     }
   }
 
+  // Capo malin : les trois capos qui donnent les accords les plus simples, ton conservé
+  function suggestRow() {
+    const sounding = parsed.lines.flatMap((l) => (l.segs || []).map((s) => s.chord)).filter((c) => c && isChord(c)).map((c) => transposeChord(c, steps));
+    const best = suggestCapo(sounding).slice(0, 3);
+    if (!best.length) return '';
+    return `<div class="opt col"><span>Capo malin <small class="muted">(le ton ne change pas)</small></span><div class="sugg">${best.map((s) => `
+      <button class="sg${s.capo === capo ? ' on' : ''}" data-a="caposet:${s.capo}"><b>${s.capo ? `Capo ${s.capo}` : 'Sans capo'}</b><span>${s.shapes.slice(0, 6).map(esc).join(' ')}</span><em>${easeLabel(s.cost)}</em></button>`).join('')}</div></div>`;
+  }
+
   function renderSheet() {
     const row = (label, inner) => `<div class="opt"><span>${label}</span><div class="ctl">${inner}</div></div>`;
     const sw = (a, on) => `<button class="switch${on ? ' on' : ''}" data-a="${a}" role="switch" aria-checked="${on}"><i></i></button>`;
@@ -293,11 +303,12 @@ export function mount(root, id, setId) {
       ${row('Taille du texte', `<button class="btn icon" data-a="fs-">A−</button><span class="val">${fontSize}</span><button class="btn icon" data-a="fs+">A+</button>`)}
       ${row(`Capo posé${song.capo ? ` <small class="muted">(le site indique ${song.capo})</small>` : ''}`, `<button class="btn icon" data-a="capo-">−</button><span class="val">${capo}</span><button class="btn icon" data-a="capo+">+</button>`)}
       ${capo ? row('Afficher aussi les accords d\'origine', sw('orig', showOrig)) : ''}
+      ${suggestRow()}
       ${row('Métronome', `<button class="btn icon" data-a="bpm-">−</button><span class="val">${tempo}</span><button class="btn icon" data-a="bpm+">+</button><button class="btn" data-a="tap">Tap</button><button class="btn ${metro.running ? 'primary' : ''}" data-a="metro">${metro.running ? '⏸' : '▶'}</button>`)}
       ${row('Mode scène (noir, texte agrandi)', sw('stage', stage))}
       ${row('Favori', sw('fav', !!song.fav))}
       ${hasSections ? row('Vitesses par section', `<span class="muted small">${Object.keys(secSpeed).length} réglée(s)</span><button class="btn" data-a="resetsec" ${Object.keys(secSpeed).length ? '' : 'disabled'}>Réinitialiser</button>`) : ''}
-      <div class="row end"><a class="btn" href="#/song/${id}/edit">✎ Modifier la chanson</a><button class="btn primary" data-a="close">Terminé</button></div>`;
+      <div class="row end"><a class="btn" href="#/print/song/${id}">🖨 Imprimer</a><a class="btn" href="#/song/${id}/edit">✎ Modifier</a><button class="btn primary" data-a="close">Terminé</button></div>`;
   }
 
   function act(a) {
@@ -322,6 +333,7 @@ export function mount(root, id, setId) {
     else if (a === 'metro') { if (metro.running) metro.stop(); else metro.start(tempo); }
     else if (a === 'stage') { stage = !stage; settings.set({ stage }); }
     else if (a === 'fav') persist({ fav: !song.fav });
+    else if (a.startsWith('caposet:')) { capo = clamp(Number(a.slice(8)), 0, 11); persist(); renderSong(); stripKey = ''; scheduleStrip(); }
     else if (a === 'resetsec') { secSpeed = {}; persist(); }
     else if (a === 'setprev' && prevId) goSong(prevId);
     else if (a === 'setnext' && nextId) goSong(nextId);
