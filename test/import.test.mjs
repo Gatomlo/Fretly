@@ -36,3 +36,11 @@ test('sources : détection automatique et refus des autres sites', async () => {
   assert.deepEqual(publicList().map((s) => s.id), ['boiteachansons']);
   await assert.rejects(importFromUrl('https://evil.example/partitions/x', 'boiteachansons'), /acceptées/);
 });
+
+test('manifeste : convention node-gateway (public/manifest.json, première icône existante)', async () => {
+  const { readFileSync, existsSync } = await import('node:fs');
+  const manifest = JSON.parse(readFileSync(new URL('../public/manifest.json', import.meta.url), 'utf8'));
+  assert.ok(manifest.icons[0].src);
+  assert.ok(existsSync(new URL(`../public/${manifest.icons[0].src}`, import.meta.url)));
+  assert.match(readFileSync(new URL('../public/index.html', import.meta.url), 'utf8'), /rel="manifest" href="manifest\.json"/);
+});

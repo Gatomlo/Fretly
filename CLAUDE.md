@@ -38,7 +38,7 @@ Chanson : `{id, title, artist, key, capo, body (ChordPro), transpose, speed, upd
 ## Commandes
 - Lancer : `npm install` puis `npm start` (http://localhost:8080 ; le micro exige HTTPS ou localhost)
 - Tests : `npm test`
-- Déploiement : dossier `apps/fretly` de `Gatomlo/node-gateway` (route `/fretly`) ; copier sans `node_modules`, `npm install` à la racine de la passerelle, redémarrer. HTTPS fourni par l'hébergeur (Infomaniak). Si `public/sw.js` ou sa liste `SHELL` change, incrémenter `CACHE`. Icônes : `public/icon.svg` + PNG (icon-192/512, apple-touch-icon) générés par `python scripts/make-icons.py` (Pillow, même dessin que le SVG : à modifier ensemble).
+- Déploiement : dossier `apps/fretly` de `Gatomlo/node-gateway` (route `/fretly`) ; copier sans `node_modules`, `npm install` à la racine de la passerelle, redémarrer. HTTPS fourni par l'hébergeur (Infomaniak). Si `public/sw.js` ou sa liste `SHELL` change, incrémenter `CACHE`. Icônes : `public/manifest.json` (nom exigé par node-gateway : sa page d'accueil affiche `icons[0]` en tuile), `public/icon.svg` + PNG (icon-192/512, apple-touch-icon) générés par `python scripts/make-icons.py` (Pillow, même dessin que le SVG : à modifier ensemble).
 
 ## Méthode de travail
 Tests d'abord sur les modules purs, puis vérification dans le navigateur. Pistes : Web MIDI/gamepad pour pédales, tuning ukulele/basse, icônes PNG, IndexedDB si gros carnets.
