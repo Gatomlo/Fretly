@@ -21,7 +21,7 @@ export function mount(root) {
           <li><b>Défilement auto</b> : ▶ lance un compte à rebours de 3 s, puis le texte défile à la vitesse choisie (lignes/min, mémorisée par morceau).</li>
           <li><b>Mode pages</b> : le morceau est découpé en colonnes qui tiennent à l'écran ; sur tablette en paysage, tout s'affiche souvent d'un coup.</li>
           <li><b>Pédale Bluetooth</b> (AirTurn, PageFlip…) : flèches, Page↑/↓ = page précédente/suivante ; Espace = lecture/pause ; + / − = vitesse.</li>
-          <li><b>Bords de l'écran</b> : larges bandes tactiles gauche/droite pour tourner la page ; toucher le texte = pause/reprise.</li>
+          <li><b>Bords de l'écran</b> : larges bandes tactiles gauche/droite pour tourner la page ; toucher une ligne = reprendre à cet endroit (zone vide = pause).</li>
           <li>L'écran reste allumé pendant la lecture.</li>
         </ul>
       </div>

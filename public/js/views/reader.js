@@ -156,6 +156,14 @@ export function mount(root, id) {
     sv.scrollTop = pos;
     if (pos >= sv.scrollHeight - sv.clientHeight - 1) { stop(); flash('Fin du morceau'); }
   }
+  // Place la ligne touchée sur le repère de lecture ; le défilement auto repart de là
+  function seek(line) {
+    const marker = sv.getBoundingClientRect().top + sv.clientHeight * READ_AT;
+    sv.scrollTop += line.getBoundingClientRect().top - (marker - 2);
+    pos = sv.scrollTop;
+    stripKey = '';
+    scheduleStrip();
+  }
   function begin() {
     playing = true;
     pos = sv.scrollTop;
@@ -218,7 +226,11 @@ export function mount(root, id) {
     if (b) return act(b.dataset.a);
     const ch = e.target.closest('[data-chord]');
     if (ch) return openChord(ch.dataset.chord);
-    if (e.target.closest('#sv') && mode === 'scroll' && !getSelection().toString()) toggle();
+    if (!e.target.closest('#sv') || mode !== 'scroll' || getSelection().toString()) return;
+    const line = e.target.closest('.line');
+    if (!line) return toggle(); // zone vide : pause / reprise
+    seek(line);
+    if (!playing && !counting) toggle();
   });
 
   function onKey(e) {
