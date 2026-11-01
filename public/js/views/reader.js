@@ -79,7 +79,13 @@ export function mount(root, id) {
     }).join('');
   }
 
+  // Marge haute : au départ, la première ligne se trouve sur le repère de lecture
+  function fitTop() {
+    sv.style.paddingTop = mode === 'scroll' ? `${Math.round(sv.clientHeight * READ_AT) - 2}px` : '';
+  }
+
   function refresh() {
+    fitTop();
     const p = parsed.meta;
     $('#t').textContent = song.title || p.title || '';
     $('#sub').textContent = [song.artist || p.artist, (song.key || p.key) && `Ton ${song.key || p.key}`, song.capo ? `Capo ${song.capo}` : ''].filter(Boolean).join(' · ');
@@ -136,7 +142,8 @@ export function mount(root, id) {
   const scheduleStrip = () => { if (!stripFrame) stripFrame = requestAnimationFrame(updateStrip); };
   sv.addEventListener('scroll', scheduleStrip, { passive: true });
   songEl.addEventListener('scroll', scheduleStrip, { passive: true });
-  addEventListener('resize', scheduleStrip);
+  const onResize = () => { fitTop(); scheduleStrip(); };
+  addEventListener('resize', onResize);
 
   const persist = () => songs.save({ ...song, transpose: steps, speed: lpm });
   const pageStep = () => songEl.clientWidth + parseFloat(getComputedStyle(songEl).columnGap || 0);
@@ -261,7 +268,7 @@ export function mount(root, id) {
   requestAnimationFrame(updateStrip);
   return () => {
     stop();
-    removeEventListener('resize', scheduleStrip);
+    removeEventListener('resize', onResize);
     removeEventListener('keydown', onKey, true);
     removeEventListener('keyup', onKey, true);
     document.removeEventListener('visibilitychange', onVis);
