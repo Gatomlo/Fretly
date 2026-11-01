@@ -1,0 +1,10 @@
+{
+  "name": "fretly",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "python -m http.server 8080",
+    "test": "node --test test/*.test.js"
+  }
+}
