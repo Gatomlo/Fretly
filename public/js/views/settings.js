@@ -105,7 +105,7 @@ export function mount(root) {
     const x = b.dataset.x;
     try {
       if (x === 'sync') { note('Synchronisation…'); await sync.run(); drawAccount(); }
-      else if (x === 'logout') { await logout(); drawAccount(); }
+      else if (x === 'logout') { await logout(); account.returnTo = null; location.hash = '#/login'; }
       else if (x === 'invite') { const r = await inviteLink(); box.querySelector('#linkout').innerHTML = copyable(`Lien d'invitation (valable ${r.days} jours, usage unique)`, r.link); box.querySelector('.copy').select(); }
       else if (x === 'reset') { const r = await resetLink(b.dataset.id); box.querySelector('#linkout').innerHTML = copyable(`Lien de réinitialisation (valable ${r.hours} h, usage unique)`, r.link); box.querySelector('.copy').select(); }
       else if (x === 'del' && confirm(`Supprimer le compte de ${b.dataset.name} et toutes ses données ?`)) { await removeUser(b.dataset.id); drawAdmin(); }

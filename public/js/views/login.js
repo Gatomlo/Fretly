@@ -17,6 +17,7 @@ export function mount(root, invite) {
       body = `<p>Vous êtes connecté en tant que <b>${esc(account.user.name)}</b> (${esc(account.user.email)}).</p><div class="row"><a class="btn primary" href="#/songs">Mes chansons</a><a class="btn" href="#/settings">Réglages</a></div>`;
     } else {
       body = `
+        ${account.returnTo ? '<p class="notice">🔒 Connectez-vous pour accéder à cette page.</p>' : ''}
         <p class="muted">${account.firstRun ? 'Aucun compte pour l\'instant : le premier que vous créez devient l\'administrateur (il pourra inviter les autres).' : invite ? 'Vous avez reçu une invitation : choisissez votre mot de passe.' : 'Connectez-vous pour retrouver vos chansons sur tous vos appareils.'}</p>
         <form id="f" class="form" autocomplete="on">
           ${create ? '<label>Prénom ou pseudo <input name="name" autocomplete="nickname" maxlength="60"></label>' : ''}
@@ -35,13 +36,27 @@ export function mount(root, invite) {
       e.preventDefault();
       const err = root.querySelector('#err');
       const btn = f.querySelector('button');
+      const label = btn.textContent;
       err.textContent = '';
       btn.disabled = true;
+      btn.textContent = create ? 'Création…' : 'Connexion…';
       try {
         if (create) await register({ name: f.name.value, email: f.email.value, password: f.password.value, invite });
         else await login(f.email.value, f.password.value);
-        location.hash = '#/songs';
-      } catch (ex) { err.textContent = ex.message; btn.disabled = false; }
+        const back = account.returnTo || '#/songs';
+        account.returnTo = null;
+        location.hash = back;
+      } catch (ex) {
+        err.textContent = ex.message;
+        err.classList.remove('shake');
+        void err.offsetWidth; // relance l'animation
+        err.classList.add('shake');
+        err.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        f.password.focus();
+        f.password.select();
+        btn.disabled = false;
+        btn.textContent = label;
+      }
     };
   }
   draw();

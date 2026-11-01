@@ -90,7 +90,7 @@ export const sets = {
 };
 
 // État du compte (rempli par account.js) : la synchronisation n'a lieu que connecté
-export const account = { user: null, firstRun: false, available: true, loaded: false };
+export const account = { user: null, firstRun: false, available: true, loaded: false, returnTo: null };
 
 let timer;
 export const sync = {

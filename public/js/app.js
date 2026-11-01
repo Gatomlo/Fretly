@@ -1,4 +1,4 @@
-import { settings, sync } from './store.js';
+import { settings, sync, account } from './store.js';
 import { loadSession } from './account.js';
 
 const ROUTES = [
@@ -17,6 +17,9 @@ const ROUTES = [
   [/^#\/settings$/, 'settings', 'settings'],
 ];
 
+// Écrans accessibles sans compte : l'accordeur, la bible des accords et la connexion elle-même
+const PUBLIC_VIEWS = new Set(['tuner', 'bible', 'login', 'reset']);
+
 const view = document.getElementById('view');
 let cleanup = null;
 let token = 0;
@@ -29,6 +32,12 @@ async function render() {
   const match = ROUTES.map((r) => [r, r[0].exec(hash)]).find(([, m]) => m);
   if (!match) { location.hash = '#/songs'; return; }
   const [[, name, tab, fullscreen], m] = match;
+  // Pas connecté : on bascule sur l'écran de connexion (sauf si le serveur est injoignable : mode local)
+  if (account.loaded && account.available && !account.user && !PUBLIC_VIEWS.has(name)) {
+    account.returnTo = hash;
+    location.replace('#/login');
+    return;
+  }
   document.body.classList.toggle('reading', !!fullscreen);
   document.querySelectorAll('#nav a').forEach((a) => a.classList.toggle('on', a.dataset.r === tab));
   view.innerHTML = '';
@@ -41,8 +50,8 @@ async function render() {
 
 document.documentElement.dataset.theme = settings.get().theme;
 addEventListener('hashchange', render);
-render();
 // Synchronisation au lancement ; on ne redessine que les écrans de liste (jamais pendant la lecture)
 sync.onChange = () => { if (/^#\/(songs|sets|set\/)/.test(location.hash || '#/songs')) render(); };
-loadSession().then(() => sync.run()).catch(() => {});
+// La session est connue avant le premier affichage (sinon on afficherait un écran protégé un instant)
+loadSession().catch(() => {}).finally(() => { render(); sync.run().catch(() => {}); });
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

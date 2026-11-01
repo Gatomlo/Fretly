@@ -1,4 +1,4 @@
-const CACHE = 'fretly-v7';
+const CACHE = 'fretly-v8';
 const SHELL = [
   './', 'index.html', 'manifest.json', 'icon.svg', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png', 'css/style.css',
   'js/app.js', 'js/music.js', 'js/chords.js', 'js/chordpro.js', 'js/pitch.js', 'js/diagram.js',

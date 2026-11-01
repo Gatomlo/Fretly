@@ -3,10 +3,13 @@ import { account, sync } from './store.js';
 async function call(method, path, body) {
   let res;
   try {
-    res = await fetch(`api/auth/${path}`, { method, headers: { 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
-  } catch { throw new Error('Serveur injoignable.'); }
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data.error || `Erreur ${res.status}`);
+    res = await fetch(`api/auth/${path}`, { method, headers: { 'content-type': 'application/json' }, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(15000) });
+  } catch (e) {
+    throw new Error(e.name === 'TimeoutError' ? 'Le serveur met trop de temps à répondre. Réessayez.' : 'Serveur injoignable : vérifiez votre connexion.');
+  }
+  const data = await res.json().catch(() => null);
+  if (!res.ok) throw new Error((data && data.error) || `Réponse inattendue du serveur (code ${res.status}).`);
+  if (data === null) throw new Error('Réponse inattendue du serveur.');
   return data;
 }
 
