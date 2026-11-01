@@ -7,6 +7,12 @@ export function mount(root, id) {
   root.innerHTML = `
     <section class="page">
       <div class="page-head"><h1>${id ? 'Modifier' : 'Nouvelle chanson'}</h1></div>
+      <div class="import form">
+        <label>Importer depuis boiteachansons.net
+          <input id="url" type="url" inputmode="url" placeholder="https://www.boiteachansons.net/partitions/…">
+        </label>
+        <div class="row"><button class="btn" type="button" id="imp">⬇ Importer</button><span class="muted small" id="impMsg"></span></div>
+      </div>
       <form id="f" class="form">
         <label>Titre <input name="title" required value="${esc(song.title)}"></label>
         <label>Artiste <input name="artist" value="${esc(song.artist || '')}"></label>
@@ -28,6 +34,23 @@ export function mount(root, id) {
     </section>`;
   const f = root.querySelector('#f');
   root.querySelector('#conv').onclick = () => { f.body.value = convertChordsOverLyrics(f.body.value); };
+  const msg = root.querySelector('#impMsg');
+  root.querySelector('#imp').onclick = async () => {
+    const url = root.querySelector('#url').value.trim();
+    if (!url) { msg.textContent = 'Collez l\'adresse de la partition.'; return; }
+    msg.textContent = 'Import en cours…';
+    try {
+      const res = await fetch(`api/import?url=${encodeURIComponent(url)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Import indisponible sur cet hébergement');
+      f.title.value = data.title;
+      f.artist.value = data.artist;
+      f.key.value = data.key;
+      f.capo.value = data.capo;
+      f.body.value = data.body;
+      msg.textContent = 'Importé : vérifiez puis enregistrez.';
+    } catch (e) { msg.textContent = e.message; }
+  };
   root.querySelector('#del')?.addEventListener('click', () => {
     if (confirm(`Supprimer « ${song.title} » ?`)) { songs.remove(id); location.hash = '#/songs'; }
   });
