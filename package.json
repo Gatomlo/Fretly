@@ -2,9 +2,12 @@
   "name": "fretly",
   "version": "0.1.0",
   "private": true,
-  "type": "module",
+  "description": "App guitariste : accordeur, carnet de chant, bible des accords",
+  "main": "server.js",
   "scripts": {
-    "start": "python -m http.server 8080",
-    "test": "node --test test/*.test.js"
-  }
+    "start": "node server.js",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": { "express": "^4.19.2" },
+  "engines": { "node": ">=18" }
 }

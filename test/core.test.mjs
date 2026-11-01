@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { isChord, transposeChord } from '../js/music.js';
-import { getChord } from '../js/chords.js';
-import { parseSong, convertChordsOverLyrics } from '../js/chordpro.js';
-import { detectPitch } from '../js/pitch.js';
+import { isChord, transposeChord } from '../public/js/music.js';
+import { getChord } from '../public/js/chords.js';
+import { parseSong, convertChordsOverLyrics } from '../public/js/chordpro.js';
+import { detectPitch } from '../public/js/pitch.js';
 
 test('reconnaissance des accords', () => {
   for (const c of ['C', 'Am7', 'F#m', 'Bb', 'D/F#', 'Gsus4', 'Cmaj7']) assert.ok(isChord(c), c);
