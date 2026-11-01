@@ -125,3 +125,22 @@ dialog .row { justify-content: center; margin-top: .6rem; }
 @media (max-width: 480px) { .lbl { display: none; } .reader-bar .btn { min-width: 40px; padding: 0 .4rem; } .song-view, .mode-pages .song-view { padding-left: 3rem; padding-right: 3rem; } }
 .overlay[hidden] { display: none; }
 @media (max-width: 480px) { .reader-bar a[href$="/edit"] { display: none; } .str { min-width: 48px; } .strings { gap: .4rem; } }
+
+/* Bandeau de diagrammes d'accords du lecteur */
+.chordstrip { position: absolute; z-index: 2; display: none; gap: .5rem; pointer-events: none; }
+.has-strip .chordstrip { display: flex; }
+.chordstrip .mini { pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 0; padding: .35rem .5rem .3rem; border-radius: 16px; border: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 88%, transparent); backdrop-filter: blur(12px); color: var(--text); font: inherit; box-shadow: var(--shadow); cursor: pointer; }
+.chordstrip .mini .cd { width: 56px; height: auto; }
+.chordstrip .mini b { font-size: .85rem; margin-top: -.2rem; }
+.chordstrip .mini.now { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent), var(--shadow); color: var(--accent); }
+.btn.active { color: var(--accent); background: var(--surface2); }
+/* Téléphone : rangée en bas du texte */
+.chordstrip { left: 0; right: 0; bottom: .5rem; justify-content: center; }
+.has-strip.mode-pages .song-view { padding-bottom: 130px; }
+/* Tablette / large : colonne à droite */
+@media (min-width: 760px) {
+  .chordstrip { left: auto; right: 3rem; top: 1rem; bottom: auto; flex-direction: column; }
+  .chordstrip .mini .cd { width: 78px; }
+  .has-strip .song-view { padding-right: 9.5rem; }
+  .has-strip.mode-pages .song-view { padding-bottom: 1.2rem; }
+}

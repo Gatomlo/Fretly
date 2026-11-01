@@ -2,6 +2,8 @@ import { songs, settings } from '../store.js';
 import { parseSong } from '../chordpro.js';
 import { isChord, transposeChord, prefersFlats } from '../music.js';
 import { openChord, chordDialogOpen, esc } from '../chordDialog.js';
+import { getChord } from '../chords.js';
+import { chordSvg } from '../diagram.js';
 
 const NEXT_KEYS = ['ArrowRight', 'ArrowDown', 'PageDown'];
 const PREV_KEYS = ['ArrowLeft', 'ArrowUp', 'PageUp'];
@@ -15,6 +17,7 @@ export function mount(root, id) {
   let lpm = song.speed || 12; // lignes par minute
   let fontSize = settings.get().fontSize;
   let mode = settings.get().mode;
+  let showStrip = settings.get().strip;
   let playing = false;
   let counting = 0;
   let raf, countTimer, pos = 0, last = 0, wake;
@@ -29,6 +32,7 @@ export function mount(root, id) {
         <div class="titles"><b id="t"></b><span class="muted small" id="sub"></span></div>
         <div class="grp"><button class="btn icon" data-a="tr-" aria-label="Descendre d'un demi-ton">♭</button><span id="tr" class="tr"></span><button class="btn icon" data-a="tr+" aria-label="Monter d'un demi-ton">♯</button></div>
         <div class="grp"><button class="btn icon" data-a="fs-" aria-label="Texte plus petit">A−</button><button class="btn icon" data-a="fs+" aria-label="Texte plus grand">A+</button></div>
+        <button class="btn icon" data-a="strip" id="stripBtn" aria-label="Afficher les diagrammes d'accords">🎸</button>
         <button class="btn icon" data-a="mode" id="modeBtn"></button>
         <a class="btn icon" href="#/song/${id}/edit" aria-label="Modifier">✎</a>
       </header>
@@ -36,6 +40,7 @@ export function mount(root, id) {
         <div class="song-view" id="sv"><div class="song" id="song"></div></div>
         <button class="edge prev" tabindex="-1" data-a="prev" aria-label="Page précédente">‹</button>
         <button class="edge next" tabindex="-1" data-a="next" aria-label="Page suivante">›</button>
+        <aside class="chordstrip" id="strip" aria-live="off"></aside>
         <div class="overlay" id="ov" hidden></div>
       </div>
       <footer class="reader-dock">
@@ -81,8 +86,49 @@ export function mount(root, id) {
     $('#modeBtn').textContent = mode === 'pages' ? '▤' : '⇅';
     $('#modeBtn').setAttribute('aria-label', mode === 'pages' ? 'Passer en défilement' : 'Passer en pages');
     root.firstElementChild.classList.toggle('mode-pages', mode === 'pages');
+    root.firstElementChild.classList.toggle('has-strip', showStrip);
+    $('#stripBtn').classList.toggle('active', showStrip);
     root.firstElementChild.style.setProperty('--fs', fontSize + 'px');
   }
+
+  // Bandeau de diagrammes : accords de la ligne en cours de lecture et des suivantes
+  const strip = $('#strip');
+  let stripKey = '';
+  let stripFrame = 0;
+  function updateStrip() {
+    stripFrame = 0;
+    if (!showStrip) { strip.innerHTML = ''; stripKey = ''; return; }
+    const lines = [...songEl.querySelectorAll('.line.has-ch')];
+    const box = (mode === 'pages' ? songEl : sv).getBoundingClientRect();
+    const marker = box.top + box.height * 0.3;
+    const from = lines.findIndex((l) => {
+      const r = l.getBoundingClientRect();
+      return mode === 'pages' ? r.left >= box.left - 2 : r.bottom > marker;
+    });
+    if (from < 0) return;
+    const names = [];
+    let current = null;
+    for (const l of lines.slice(from, from + 4)) {
+      for (const el of l.querySelectorAll('[data-chord]')) {
+        const n = el.dataset.chord;
+        if (current === null) current = n;
+        if (!names.includes(n)) names.push(n);
+      }
+      if (names.length >= 4) break;
+    }
+    const list = names.slice(0, 4);
+    const key = list.join('|') + '#' + current;
+    if (key === stripKey) return;
+    stripKey = key;
+    strip.innerHTML = list.map((n) => {
+      const c = getChord(n);
+      return `<button class="mini${n === current ? ' now' : ''}" tabindex="-1" data-chord="${esc(n)}">${c ? chordSvg(c.voicings[0], n) : ''}<b>${esc(n)}</b></button>`;
+    }).join('');
+  }
+  const scheduleStrip = () => { if (!stripFrame) stripFrame = requestAnimationFrame(updateStrip); };
+  sv.addEventListener('scroll', scheduleStrip, { passive: true });
+  songEl.addEventListener('scroll', scheduleStrip, { passive: true });
+  addEventListener('resize', scheduleStrip);
 
   const persist = () => songs.save({ ...song, transpose: steps, speed: lpm });
   const pageStep = () => songEl.clientWidth + parseFloat(getComputedStyle(songEl).columnGap || 0);
@@ -146,13 +192,14 @@ export function mount(root, id) {
     else if (a === 'prev') go(-1);
     else if (a === 'play') toggle();
     else if (a === 'sp+' || a === 'sp-') { lpm = Math.min(60, Math.max(2, lpm + (a === 'sp+' ? 1 : -1))); persist(); }
-    else if (a === 'tr+' || a === 'tr-') { steps = (steps + (a === 'tr+' ? 1 : -1) + 12) % 12; if (steps > 6) steps -= 12; persist(); renderSong(); }
+    else if (a === 'tr+' || a === 'tr-') { steps = (steps + (a === 'tr+' ? 1 : -1) + 12) % 12; if (steps > 6) steps -= 12; persist(); renderSong(); stripKey = ''; scheduleStrip(); }
     else if (a === 'fs+' || a === 'fs-') { fontSize = Math.min(44, Math.max(12, fontSize + (a === 'fs+' ? 2 : -2))); settings.set({ fontSize }); }
+    else if (a === 'strip') { showStrip = !showStrip; settings.set({ strip: showStrip }); stripKey = ''; scheduleStrip(); }
     else if (a === 'mode') {
       stop();
       mode = mode === 'pages' ? 'scroll' : 'pages';
       settings.set({ mode });
-      sv.scrollTop = 0; songEl.scrollLeft = 0;
+      sv.scrollTop = 0; songEl.scrollLeft = 0; stripKey = '';
     }
     refresh();
   }
@@ -191,8 +238,10 @@ export function mount(root, id) {
 
   renderSong();
   refresh();
+  requestAnimationFrame(updateStrip);
   return () => {
     stop();
+    removeEventListener('resize', scheduleStrip);
     removeEventListener('keydown', onKey, true);
     removeEventListener('keyup', onKey, true);
     document.removeEventListener('visibilitychange', onVis);

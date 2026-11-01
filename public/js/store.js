@@ -1,7 +1,7 @@
 import { SEED_SONGS } from './seed.js';
 
 const K = { songs: 'fretly.songs', settings: 'fretly.settings', seeded: 'fretly.seeded' };
-const DEFAULTS = { theme: 'auto', fontSize: 20, ref: 440, mode: 'scroll' };
+const DEFAULTS = { theme: 'auto', fontSize: 20, ref: 440, mode: 'scroll', strip: true };
 
 function read(key, def) {
   try { return JSON.parse(localStorage.getItem(key)) ?? def; } catch { return def; }

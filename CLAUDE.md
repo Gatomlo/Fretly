@@ -10,7 +10,7 @@ Front : JavaScript ES modules natifs dans `public/`, **sans build**. Serveur : `
 - Chemins ci-dessous relatifs à `public/js/`.
 - Modules purs (testés, sans DOM) : `music.js` (notes, parsing/transposition d'accords), `chords.js` (doigtés générés depuis gabarits E/A mobiles + table `OPEN`), `chordpro.js` (parser + conversion « accords au-dessus »), `pitch.js` (YIN, accordages).
 - `diagram.js` (SVG d'accord), `audio.js` (corde pincée Karplus-Strong), `chordDialog.js` (fenêtre d'accord), `store.js` (songs/settings), `seed.js` (2 chansons domaine public).
-- `views/reader.js` : cœur du pilotage mains libres.
+- `views/reader.js` : cœur du pilotage mains libres ; bandeau `#strip` = diagrammes des accords de la ligne en cours + suivantes (suit le scroll ou la page, bouton 🎸, réglage `strip`).
 
 ## Import de partitions
 `GET /api/import?url=` (server.js) → `lib/boiteachansons.js` lit une page `https://www.boiteachansons.net/partitions/…` (hôte et chemin en liste blanche) et la convertit en ChordPro (`div.pL` / `span.a[data-aff]`, ton et capo en champs cachés). Utilisé par l'éditeur (champ « Importer »). Sans serveur Node, l'import est indisponible (coller le texte + « Convertir »). Contenu soumis aux droits de ses ayants droit : usage personnel.
