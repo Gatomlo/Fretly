@@ -107,8 +107,16 @@ test('réinitialisation par lien (admin) : change le mot de passe et ferme les a
 test("changement de mot de passe, suppression d'un utilisateur, mot de passe de secours", async () => {
   const admin = client();
   await admin('POST', '/api/auth/login', { email: 'admin@x.be', password: 'motdepasse1' });
-  assert.equal((await admin('POST', '/api/auth/password', { current: 'faux', password: 'autremdp123' })).status, 403);
-  assert.equal((await admin('POST', '/api/auth/password', { current: 'motdepasse1', password: 'autremdp123' })).status, 200);
+  // pas d'ancien mot de passe demandé ; un mot de passe trop court est refusé ; les autres sessions sont fermées
+  const autre = client();
+  await autre('POST', '/api/auth/login', { email: 'admin@x.be', password: 'motdepasse1' });
+  assert.equal((await admin('POST', '/api/auth/password', { password: 'court' })).status, 400);
+  assert.equal((await client()('POST', '/api/auth/password', { password: 'autremdp123' })).status, 401, 'connexion requise');
+  assert.equal((await admin('POST', '/api/auth/password', { password: 'autremdp123' })).status, 200);
+  assert.equal((await admin('GET', '/api/auth/session')).json.user.email, 'admin@x.be', 'la session courante reste ouverte');
+  assert.equal((await autre('GET', '/api/auth/session')).json.user, null, "l'autre session est fermée");
+  assert.equal((await client()('POST', '/api/auth/login', { email: 'admin@x.be', password: 'autremdp123' })).status, 200);
+  await admin('POST', '/api/auth/login', { email: 'admin@x.be', password: 'autremdp123' });
   await auth.setPasswordFor('admin@x.be', 'secours-1234');
   assert.equal((await admin('GET', '/api/auth/session')).json.user, null, 'sessions fermées par le mot de passe de secours');
   const a2 = client();

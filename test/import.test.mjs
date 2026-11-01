@@ -44,3 +44,17 @@ test('manifeste : convention node-gateway (public/manifest.json, première icôn
   assert.ok(existsSync(new URL(`../public/${manifest.icons[0].src}`, import.meta.url)));
   assert.match(readFileSync(new URL('../public/index.html', import.meta.url), 'utf8'), /rel="manifest" href="manifest\.json"/);
 });
+
+test('hors ligne : le service worker précharge exactement les fichiers de public/', async () => {
+  const { readFileSync, readdirSync, statSync } = await import('node:fs');
+  const root = new URL('../public/', import.meta.url);
+  const walk = (dir, base = '') => readdirSync(new URL(dir, root)).flatMap((f) => {
+    const rel = base + f;
+    return statSync(new URL(rel, root)).isDirectory() ? walk(`${rel}/`, `${rel}/`) : [rel];
+  });
+  const files = walk('').filter((f) => f !== 'sw.js').sort();
+  const sw = readFileSync(new URL('sw.js', root), 'utf8');
+  const shell = [...sw.split('const SHELL = [')[1].split('];')[0].matchAll(/'([^']+)'/g)].map((m) => m[1]).filter((f) => f !== './').sort();
+  assert.deepEqual(shell, files, 'liste SHELL de sw.js différente des fichiers de public/');
+  assert.ok(sw.includes("url.pathname.includes('/api/')"), "l'API ne doit jamais être mise en cache");
+});

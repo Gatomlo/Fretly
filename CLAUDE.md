@@ -18,11 +18,17 @@ Lecteur : feuille d'options (⋯) = capo posé (les accords affichés sont les f
 
 ## Comptes et synchronisation
 Même principe que Cabas / Fée Lezcomptes : e-mail + mot de passe (**scrypt**), session par cookie `fretly_session` (HttpOnly, SameSite=Lax, 90 j, `Path=<montage>/`), **aucun e-mail envoyé**. Le **premier compte créé est libre et devient admin** ; ensuite inscription **par lien d'invitation** (admin : Réglages → Administration, 7 j, usage unique) ; mot de passe oublié = **lien de réinitialisation** généré par l'admin (48 h) ou `npm run set-password -- <email> <mdp>`. Échecs de connexion limités (8 / 15 min / adresse).
+- Changement de mot de passe (Réglages) : **sans ancien mot de passe** (la session suffit) ; les autres sessions du compte sont alors fermées.
 - `lib/auth.js` : stockage `data/auth.json`, routes `/api/auth/*` (session, register, login, logout, password, invite, users, reset, reset-confirm), gardes `requireUser`. `FRETLY_PUBLIC_URL` (ex. `https://<domaine>/fretly`) fixe l'adresse des liens ; sinon déduite de la requête.
 - `lib/sync.js` : `POST /api/sync` (connecté) fusionne l'état du compte (`data/sync/<idUtilisateur>.json`) : élément par élément, `updated` le plus récent gagne, suppressions = tombstones `deleted`. Client : `store.js` (`account`, `sync.run/schedule`) et `account.js` ; synchro au lancement et 1,5 s après chaque modification, uniquement connecté. Sans compte, tout reste local (l'app fonctionne hors serveur).
 - **Garde d'accès** (`app.js`, `PUBLIC_VIEWS`) : sans compte, tout écran sauf accordeur, bible des accords, connexion et réinitialisation renvoie vers `#/login` (page demandée mémorisée dans `account.returnTo`, rouverte après connexion). Si le serveur est injoignable (hors-ligne, hébergement statique), pas de garde : mode local. La session est lue avant le premier affichage.
 - `/api/import` exige aussi un compte. Vues : `#/login[?invite=]`, `#/reset?token=`, section Compte des Réglages.
 - `data/` (comptes + données) n'est pas versionné : **à conserver lors des déploiements** (`FRETLY_DATA` pour le déplacer).
+
+## Installation et hors ligne
+- `public/sw.js` : tout `public/` est préchargé (liste `SHELL`, **un test vérifie qu'elle correspond exactement aux fichiers** : tout nouveau fichier doit y être ajouté, et `CACHE` incrémenté). Fichiers servis par le réseau si celui-ci répond en < 3 s, sinon par le cache ; page inconnue hors ligne → accueil de l'app. **`/api/` n'est jamais mis en cache.** Les chansons sont en `localStorage` : lisibles sans réseau.
+- Serveur injoignable ⇒ pas de garde de connexion (mode local) ; au retour du réseau, `online` relance la synchro. Bandeau « Hors ligne » et « Nouvelle version prête » : `pwa.js` (`initBar`).
+- Réglages → « Application et hors ligne » (`pwa.js`) : bouton **Installer** (événement `beforeinstallprompt` gardé), consigne Safari sur iPhone/iPad, état du mode hors ligne, mises à jour, protection du stockage (`storage.persist`). HTTPS exigé (sauf localhost).
 
 ## Import de partitions (plusieurs sources possibles)
 - **Registre** `lib/sources.js` : un site = un module (`checkUrl(raw)` valide l'adresse et lève une erreur sinon ; `parse(html)` renvoie `{title, artist, key, capo, tempo, body ChordPro}`) + une entrée dans `SOURCES`. L'éditeur et l'écran d'import proposent alors automatiquement le nouveau site. Source actuelle : `lib/boiteachansons.js` (`div.pL` / `span.a[data-aff]`, ton et capo en champs cachés).

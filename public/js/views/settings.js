@@ -1,6 +1,7 @@
 import { settings, songs, sync, account } from '../store.js';
 import { esc } from '../chordDialog.js';
 import { loadSession, logout, changePassword, inviteLink, listUsers, resetLink, removeUser } from '../account.js';
+import { platform, isStandalone, isSecure, canPromptInstall, promptInstall, onInstallChange, offlineStatus, requestPersist, checkUpdate } from '../pwa.js';
 
 export function mount(root) {
   const s = settings.get();
@@ -11,6 +12,8 @@ export function mount(root) {
       <div class="form">
         <h2>Compte</h2>
         <div id="acct"><p class="muted">Chargement…</p></div>
+        <h2>Application et hors ligne</h2>
+        <div id="pwa"><p class="muted">Chargement…</p></div>
         <h2>Affichage</h2>
         <label>Thème
           <select id="theme">${[['auto', 'Automatique'], ['dark', 'Sombre'], ['light', 'Clair']].map(([v, l]) => `<option value="${v}"${s.theme === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
@@ -82,7 +85,6 @@ export function mount(root) {
         <p class="muted small" id="anote">${sync.lastOk ? `Dernière synchronisation à ${new Date(sync.lastOk).toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })}.` : 'La synchronisation est automatique à chaque modification.'}</p>
         <details class="adder"><summary class="btn">Changer mon mot de passe</summary>
           <form id="pw" class="form">
-            <label>Mot de passe actuel <input name="current" type="password" autocomplete="current-password" required></label>
             <label>Nouveau mot de passe <input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
             <p class="muted small" id="pwmsg"></p>
             <button class="btn primary" type="submit">Enregistrer</button>
@@ -92,7 +94,7 @@ export function mount(root) {
       box.querySelector('#pw').onsubmit = async (e) => {
         e.preventDefault();
         const f = e.target;
-        try { await changePassword(f.current.value, f.password.value); box.querySelector('#pwmsg').textContent = 'Mot de passe modifié.'; f.reset(); }
+        try { await changePassword(f.password.value); box.querySelector('#pwmsg').textContent = 'Mot de passe modifié.'; f.reset(); }
         catch (ex) { box.querySelector('#pwmsg').textContent = ex.message; }
       };
       if (u.role === 'admin') drawAdmin();
@@ -111,6 +113,56 @@ export function mount(root) {
       else if (x === 'del' && confirm(`Supprimer le compte de ${b.dataset.name} et toutes ses données ?`)) { await removeUser(b.dataset.id); drawAdmin(); }
     } catch (ex) { note(ex.message); alert(ex.message); }
   };
+  // ---------- Installation et hors ligne ----------
+  const pwa = $('pwa');
+  async function drawPwa() {
+    const st = await offlineStatus();
+    if (!alive) return;
+    const online = navigator.onLine;
+    const plat = platform();
+    let install;
+    if (isStandalone()) install = '<p class="okline">✓ Fretly est installée sur cet appareil.</p>';
+    else if (canPromptInstall()) install = `<button class="btn primary big" data-p="install">📲 Installer Fretly</button><p class="muted small">Ajoute l'icône à votre écran d'accueil ; l'app s'ouvre en plein écran, comme une application.</p>`;
+    else if (plat === 'ios') install = `<p>Sur iPhone et iPad, depuis <b>Safari</b> : touchez <b>Partager</b> (le carré avec une flèche) puis <b>« Sur l'écran d'accueil »</b>.</p>`;
+    else if (!isSecure()) install = `<p class="muted small">L'installation demande une connexion sécurisée (HTTPS).</p>`;
+    else install = `<p class="muted small">Votre navigateur ne propose pas l'installation automatique pour l'instant. Ouvrez son menu (⋮ ou Partager) puis « Installer l'application » ou « Ajouter à l'écran d'accueil ».</p>`;
+
+    let ready;
+    if (!st.supported) ready = ['✕', 'Indisponible', 'Il faut HTTPS et un navigateur récent.'];
+    else if (!st.controlled) ready = ['⏳', 'En cours de préparation', `Rechargez la page une fois : l'app sera ensuite utilisable sans réseau.`];
+    else ready = ['✓', 'Prête', `L'app et vos chansons fonctionnent sans réseau.`];
+    const n = songs.list().length;
+    pwa.innerHTML = `${install}
+      <ul class="status">
+        <li><span>Réseau</span><b class="${online ? 'ok' : 'warn'}">${online ? 'En ligne' : 'Hors ligne'}</b></li>
+        <li><span>Mode hors ligne</span><b class="${ready[0] === '✓' ? 'ok' : 'warn'}">${ready[0]} ${ready[1]}</b></li>
+        <li><span>Fichiers de l'app en cache</span><b>${st.files || '–'}</b></li>
+        <li><span>Chansons sur cet appareil</span><b>${n}</b></li>
+        <li><span>Stockage protégé</span><b class="${st.persisted ? 'ok' : ''}">${st.persisted ? '✓ Oui' : st.canPersist ? 'Non' : 'Non géré'}</b></li>
+      </ul>
+      <p class="muted small" id="pnote">${esc(ready[2])} Les chansons sont gardées dans le navigateur de cet appareil ; l'import et la synchronisation demandent le réseau.</p>
+      <div class="row"><button class="btn" data-p="update" ${st.supported ? '' : 'disabled'}>↻ Vérifier les mises à jour</button>${st.canPersist && !st.persisted ? '<button class="btn" data-p="persist">🛡 Protéger mes données</button>' : ''}</div>`;
+  }
+  pwa.onclick = async (e) => {
+    const p = e.target.closest('[data-p]')?.dataset.p;
+    const note = (t) => { const n = pwa.querySelector('#pnote'); if (n) n.textContent = t; };
+    if (p === 'install') { await promptInstall(); drawPwa(); }
+    else if (p === 'persist') {
+      const ok = await requestPersist();
+      await drawPwa();
+      if (!ok) note(`Le navigateur n'a pas accordé la protection (elle l'est souvent automatiquement une fois l'app installée).`);
+    } else if (p === 'update') {
+      note('Vérification…');
+      const r = await checkUpdate().catch(() => 'error');
+      note(r === 'installing' ? `Une nouvelle version s'installe : un bouton « Recharger » va apparaître.` : r === 'uptodate' ? 'Fretly est à jour.' : 'Impossible de vérifier pour le moment.');
+    }
+  };
+  const refreshPwa = () => drawPwa();
+  addEventListener('online', refreshPwa);
+  addEventListener('offline', refreshPwa);
+  const offInstall = onInstallChange(refreshPwa);
+  drawPwa();
+
   drawAccount();
-  return () => { alive = false; };
+  return () => { alive = false; removeEventListener('online', refreshPwa); removeEventListener('offline', refreshPwa); offInstall(); };
 }

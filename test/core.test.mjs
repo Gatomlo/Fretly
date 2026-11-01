@@ -6,6 +6,7 @@ import { parseSong, convertChordsOverLyrics, lyricLines, fold } from '../public/
 import { suggestCapo, chordCost } from '../public/js/capo.js';
 import { createGuide } from '../public/js/guided.js';
 import { parseUrls, normalizeUrl } from '../public/js/urls.js';
+import { detectPlatform } from '../public/js/pwa.js';
 import { detectPitch } from '../public/js/pitch.js';
 
 test('reconnaissance des accords', () => {
@@ -106,4 +107,12 @@ test("liste d'adresses : extraction, doublons, ponctuation", () => {
   assert.deepEqual(urls, ['https://www.boiteachansons.net/partitions/radiohead/creep', 'https://www.boiteachansons.net/partitions/a/b', 'https://www.boiteachansons.net/partitions/c/d']);
   assert.deepEqual(parseUrls(text, ['https://www.boiteachansons.net/partitions/a/b/']).length, 2, 'déjà dans la file');
   assert.equal(normalizeUrl('https://WWW.Exemple.be/x/?a=1#z'), 'exemple.be/x');
+});
+
+test('installation : détection de la plateforme', () => {
+  assert.equal(detectPlatform('Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X)', 5), 'ios');
+  assert.equal(detectPlatform('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 5), 'ios', 'iPadOS se présente comme un Mac tactile');
+  assert.equal(detectPlatform('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)', 0), 'desktop');
+  assert.equal(detectPlatform('Mozilla/5.0 (Linux; Android 14; Pixel 8)', 5), 'android');
+  assert.equal(detectPlatform('Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 0), 'desktop');
 });

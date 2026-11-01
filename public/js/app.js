@@ -1,5 +1,6 @@
 import { settings, sync, account } from './store.js';
 import { loadSession } from './account.js';
+import { initPwa, initBar } from './pwa.js';
 
 const ROUTES = [
   [/^#\/tuner$/, 'tuner', 'tuner'],
@@ -54,4 +55,6 @@ addEventListener('hashchange', render);
 sync.onChange = () => { if (/^#\/(songs|sets|set\/)/.test(location.hash || '#/songs')) render(); };
 // La session est connue avant le premier affichage (sinon on afficherait un écran protégé un instant)
 loadSession().catch(() => {}).finally(() => { render(); sync.run().catch(() => {}); });
+initPwa();
+initBar(() => sync.run().catch(() => {})); // bandeau hors ligne / nouvelle version ; synchro au retour du réseau
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

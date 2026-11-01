@@ -35,7 +35,7 @@ export const login = (email, password) => call('POST', 'login', { email, passwor
 export const register = (body) => call('POST', 'register', body).then(entered);
 export const resetConfirm = (token, password) => call('POST', 'reset-confirm', { token, password }).then(entered);
 export async function logout() { await call('POST', 'logout'); account.user = null; }
-export const changePassword = (current, password) => call('POST', 'password', { current, password });
+export const changePassword = (password) => call('POST', 'password', { password });
 export const inviteLink = () => call('POST', 'invite');
 export const listUsers = () => call('GET', 'users');
 export const resetLink = (userId) => call('POST', 'reset', { userId });
