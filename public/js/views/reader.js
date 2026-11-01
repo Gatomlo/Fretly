@@ -7,6 +7,7 @@ import { chordSvg } from '../diagram.js';
 
 const NEXT_KEYS = ['ArrowRight', 'ArrowDown', 'PageDown'];
 const PREV_KEYS = ['ArrowLeft', 'ArrowUp', 'PageUp'];
+const READ_AT = 0.3; // position du repère de lecture dans la hauteur visible
 const LINE_EM = 2.7; // hauteur moyenne d'une ligne accords+paroles, en em
 
 export function mount(root, id) {
@@ -40,6 +41,7 @@ export function mount(root, id) {
         <div class="song-view" id="sv"><div class="song" id="song"></div></div>
         <button class="edge prev" tabindex="-1" data-a="prev" aria-label="Page précédente">‹</button>
         <button class="edge next" tabindex="-1" data-a="next" aria-label="Page suivante">›</button>
+        <div class="guide" aria-hidden="true"></div>
         <aside class="chordstrip" id="strip" aria-live="off"></aside>
         <div class="overlay" id="ov" hidden></div>
       </div>
@@ -61,6 +63,7 @@ export function mount(root, id) {
 
   function renderSong() {
     const flats = flatsFor();
+    curLine = null;
     songEl.innerHTML = parsed.lines.map((l) => {
       if (l.type === 'blank') return '<div class="gap"></div>';
       if (l.type === 'section') return `<h3 class="sec">${esc(l.text)}</h3>`;
@@ -94,13 +97,18 @@ export function mount(root, id) {
   // Bandeau de diagrammes : accords de la ligne en cours de lecture et des suivantes
   const strip = $('#strip');
   let stripKey = '';
+  let curLine = null;
   let stripFrame = 0;
   function updateStrip() {
     stripFrame = 0;
-    if (!showStrip) { strip.innerHTML = ''; stripKey = ''; return; }
-    const lines = [...songEl.querySelectorAll('.line.has-ch')];
     const box = (mode === 'pages' ? songEl : sv).getBoundingClientRect();
-    const marker = box.top + box.height * 0.3;
+    const marker = box.top + box.height * READ_AT;
+    // Ligne de lecture : celle que traverse le repère (mode défilement)
+    const all = [...songEl.querySelectorAll('.line')];
+    const cur = mode === 'pages' ? null : all.find((l) => l.getBoundingClientRect().bottom > marker);
+    if (cur !== curLine) { curLine?.classList.remove('cur'); cur?.classList.add('cur'); curLine = cur; }
+    if (!showStrip) { strip.innerHTML = ''; stripKey = ''; return; }
+    const lines = all.filter((l) => l.classList.contains('has-ch'));
     const from = lines.findIndex((l) => {
       const r = l.getBoundingClientRect();
       return mode === 'pages' ? r.left >= box.left - 2 : r.bottom > marker;

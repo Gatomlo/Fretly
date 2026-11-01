@@ -144,3 +144,11 @@ dialog .row { justify-content: center; margin-top: .6rem; }
   .has-strip .song-view { padding-right: 9.5rem; }
   .has-strip.mode-pages .song-view { padding-bottom: 1.2rem; }
 }
+
+/* Repère de lecture : la ligne à chanter maintenant */
+.guide { position: absolute; left: 0; right: 0; top: 30%; height: 0; z-index: 1; pointer-events: none; display: none; }
+.guide::before { content: ""; position: absolute; left: .35rem; top: -9px; border: 9px solid transparent; border-left: 13px solid var(--accent); border-right: 0; }
+.mode-pages .guide { display: none; }
+.reader:not(.mode-pages) .guide { display: block; }
+.line { border-radius: 10px; transition: background .2s; }
+.line.cur { background: color-mix(in srgb, var(--accent) 13%, transparent); box-shadow: inset 4px 0 0 var(--accent); }
