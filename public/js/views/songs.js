@@ -11,8 +11,6 @@ const COMPARE = {
   key: (a, b) => (a.key || '~').localeCompare(b.key || '~') || a.title.localeCompare(b.title, 'fr'),
 };
 
-export const tabs = (on) => `<nav class="seg2"><a class="${on === 'songs' ? 'on' : ''}" href="#/songs">Chansons</a><a class="${on === 'sets' ? 'on' : ''}" href="#/sets">Setlists</a></nav>`;
-
 export function mount(root) {
   let sort = settings.get().sort in SORTS ? settings.get().sort : 'title';
   let filter = 'all';
@@ -23,7 +21,6 @@ export function mount(root) {
         <div class="brand"><img src="icon.svg" alt="" width="44" height="44"><div><h1>${greeting()} 🎸</h1><span class="muted small" id="count"></span></div></div>
         <a class="btn primary" href="#/song/new">＋ Nouveau</a>
       </div>
-      ${tabs('songs')}
       <div id="hero"></div>
       <div class="row tools">
         <input type="search" id="q" placeholder="Rechercher un titre, un artiste…" aria-label="Rechercher">

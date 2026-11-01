@@ -6,8 +6,8 @@ const ROUTES = [
   [/^#\/song\/new$/, 'editor', 'songs'],
   [/^#\/song\/([^/]+)\/edit$/, 'editor', 'songs'],
   [/^#\/song\/([^/?]+)(?:\?set=([^&]+))?$/, 'reader', 'songs', true],
-  [/^#\/sets$/, 'sets', 'songs'],
-  [/^#\/set\/([^/]+)$/, 'set', 'songs'],
+  [/^#\/sets$/, 'sets', 'sets'],
+  [/^#\/set\/([^/]+)$/, 'set', 'sets'],
   [/^#\/chords(?:\/(.+))?$/, 'bible', 'chords'],
   [/^#\/settings$/, 'settings', 'settings'],
 ];

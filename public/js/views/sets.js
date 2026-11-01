@@ -1,12 +1,10 @@
 import { sets, songs } from '../store.js';
 import { esc } from '../chordDialog.js';
-import { tabs } from './songs.js';
 
 export function mount(root) {
   root.innerHTML = `
     <section class="page">
       <div class="page-head"><h1>Setlists</h1></div>
-      ${tabs('sets')}
       <form class="row tools" id="f">
         <input name="name" placeholder="Nouvelle setlist (ex. Soirée du 14 juin)" aria-label="Nom de la setlist" required>
         <button class="btn primary" type="submit">＋ Créer</button>
