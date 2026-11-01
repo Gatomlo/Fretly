@@ -23,6 +23,7 @@ export function openChord(symbol, index = 0) {
           <button class="btn icon" data-d="1" aria-label="Position suivante" ${n < 2 ? 'disabled' : ''}>›</button>
         </div>
         <p class="muted">Position ${i + 1} / ${n}${chord.bass ? ` · basse ${esc(chord.bass)}` : ''}</p>
+        ${chord.approx ? `<p class="muted small">Version simplifiée de ${esc(symbol)}</p>` : ''}
         <div class="row">
           <button class="btn primary" data-play>▶ Écouter</button>
           <button class="btn" data-close>Fermer</button>

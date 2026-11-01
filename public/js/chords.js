@@ -3,7 +3,8 @@ import { NOTES, noteIndex, parseChord } from './music.js';
 export const QUALITIES = [
   ['', 'Majeur'], ['m', 'Mineur'], ['7', '7'], ['maj7', 'maj7'], ['m7', 'm7'],
   ['sus2', 'sus2'], ['sus4', 'sus4'], ['dim', 'dim'], ['dim7', 'dim7'], ['aug', 'aug'],
-  ['6', '6'], ['m6', 'm6'], ['9', '9'], ['add9', 'add9'],
+  ['6', '6'], ['m6', 'm6'], ['9', '9'], ['maj9', 'maj9'], ['add9', 'add9'], ['madd9', 'madd9'],
+  ['7sus4', '7sus4'], ['m7b5', 'm7b5'], ['5', '5'],
 ];
 
 const ALIASES = {
@@ -11,7 +12,12 @@ const ALIASES = {
   maj7: 'maj7', M7: 'maj7', 'Δ': 'maj7', 'Δ7': 'maj7', m7: 'm7', min7: 'm7', '-7': 'm7',
   sus: 'sus4', sus4: 'sus4', sus2: 'sus2', dim: 'dim', '°': 'dim', dim7: 'dim7', '°7': 'dim7',
   aug: 'aug', '+': 'aug', 6: '6', m6: 'm6', 9: '9', add9: 'add9',
+  // Notations courantes : A2 = Asus2, E4 = Esus4
+  2: 'sus2', 4: 'sus4', add2: 'add9', 5: '5', maj9: 'maj9', M9: 'maj9', madd9: 'madd9',
+  '7sus4': '7sus4', '7sus': '7sus4', m7b5: 'm7b5', 'm7-5': 'm7b5', 'm7(b5)': 'm7b5',
 };
+// Accords étendus sans doigté dédié : version simplifiée la plus proche
+const SIMPLIFIED = { 11: '9', 13: '9', m9: 'm7', m11: 'm7', m13: 'm7', maj13: 'maj7', '7b9': '7', '7#9': '7', '7b5': '7', '7#5': 'aug', '7(b9)': '7', '7(#9)': '7', 'maj7#11': 'maj7', mMaj7: 'm', 'm(maj7)': 'm' };
 
 // Gabarits mobiles : décalages de frettes par rapport à la fret de la fondamentale
 // (6 cordes, de la grave à l'aiguë ; null = corde non jouée)
@@ -19,6 +25,7 @@ const E_FORM = {
   '': [0, 2, 2, 1, 0, 0], m: [0, 2, 2, 0, 0, 0], 7: [0, 2, 0, 1, 0, 0],
   maj7: [0, 2, 1, 1, 0, 0], m7: [0, 2, 0, 0, 0, 0], sus4: [0, 2, 2, 2, 0, 0],
   6: [0, 2, 2, 1, 2, 0], m6: [0, 2, 2, 0, 2, 0], 9: [0, 2, 0, 1, 0, 2],
+  sus2: [0, 2, 4, 4, 0, 0], '7sus4': [0, 2, 0, 2, 0, 0], 5: [0, 2, 2, null, null, null],
 };
 const A_FORM = {
   '': [null, 0, 2, 2, 2, 0], m: [null, 0, 2, 2, 1, 0], 7: [null, 0, 2, 0, 2, 0],
@@ -26,6 +33,8 @@ const A_FORM = {
   sus4: [null, 0, 2, 2, 3, 0], dim: [null, 0, 1, 2, 1, null], dim7: [null, 0, 1, 2, 1, 2],
   aug: [null, 0, 3, 2, 2, 1], 6: [null, 0, 2, 2, 2, 2], m6: [null, 0, 2, 2, 1, 2],
   add9: [null, 0, 2, 4, 2, 0], 9: [null, 0, -1, 0, 0, 0],
+  maj9: [null, 0, 2, 1, 0, 0], madd9: [null, 0, 2, 4, 1, 0], '7sus4': [null, 0, 2, 0, 3, 0],
+  m7b5: [null, 0, 1, 0, 1, null], 5: [null, 0, 2, 2, null, null],
 };
 // Positions ouvertes qui ne découlent pas des gabarits
 const OPEN = {
@@ -59,6 +68,15 @@ export function normalizeQuality(suffix) {
   return suffix in ALIASES ? ALIASES[suffix] : null;
 }
 
+// Qualité connue, sinon version simplifiée (approx = true), sinon base majeure/mineure
+function resolveQuality(suffix) {
+  const exact = normalizeQuality(suffix);
+  if (exact !== null) return { quality: exact, approx: false };
+  const near = SIMPLIFIED[suffix];
+  if (near !== undefined) return { quality: near, approx: true };
+  return { quality: /^m(?!aj)/.test(suffix) ? 'm' : '', approx: true };
+}
+
 export function voicingsFor(rootName, quality, bassName = null) {
   const root = noteIndex(rootName);
   const out = [];
@@ -87,8 +105,7 @@ export function voicingsFor(rootName, quality, bassName = null) {
 export function getChord(sym) {
   const c = parseChord(sym);
   if (!c) return null;
-  const quality = normalizeQuality(c.suffix);
-  if (quality === null) return null;
+  const { quality, approx } = resolveQuality(c.suffix);
   const voicings = voicingsFor(c.root, quality, c.bass);
-  return voicings.length ? { symbol: sym, root: c.root, quality, bass: c.bass, voicings } : null;
+  return voicings.length ? { symbol: sym, root: c.root, quality, bass: c.bass, approx, voicings } : null;
 }

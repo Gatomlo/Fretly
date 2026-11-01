@@ -25,6 +25,17 @@ test('doigtés', () => {
   assert.ok(getChord('Am/G').voicings.length);
 });
 
+test('notations A2 / E4 et accords étendus', () => {
+  assert.deepEqual(getChord('A2').voicings[0].frets, [null, 0, 2, 2, 0, 0]);
+  assert.deepEqual(getChord('E4').voicings[0].frets, [0, 2, 2, 2, 0, 0]);
+  assert.deepEqual(getChord('A5').voicings[0].frets, [null, 0, 2, 2, null, null]);
+  assert.equal(getChord('A2').approx, false);
+  const a11 = getChord('A11');
+  assert.equal(a11.approx, true);
+  assert.ok(a11.voicings.length);
+  assert.ok(getChord('F#m7b5').voicings.length);
+});
+
 test('ChordPro', () => {
   const s = parseSong('{title: T}\n{c: Refrain}\nA[Am]mazing [G]grace\n[Intro]\n');
   assert.equal(s.meta.title, 'T');
