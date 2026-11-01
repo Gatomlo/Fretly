@@ -25,3 +25,14 @@ test('import : seules les partitions du site sont autorisées', () => {
     assert.throws(() => checkUrl(u), u);
   }
 });
+
+const { pick, publicList, importFromUrl } = createRequire(import.meta.url)('../lib/sources.js');
+
+test('sources : détection automatique et refus des autres sites', async () => {
+  assert.equal(pick('https://www.boiteachansons.net/partitions/radiohead/creep').id, 'boiteachansons');
+  assert.equal(pick('https://exemple.org/x', 'boiteachansons').id, 'boiteachansons', 'source imposée');
+  assert.throws(() => pick('https://exemple.org/x'), /non reconnue/);
+  assert.throws(() => pick('https://www.boiteachansons.net/partitions/x/y', 'inconnue'), /inconnue/);
+  assert.deepEqual(publicList().map((s) => s.id), ['boiteachansons']);
+  await assert.rejects(importFromUrl('https://evil.example/partitions/x', 'boiteachansons'), /acceptées/);
+});

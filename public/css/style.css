@@ -301,3 +301,13 @@ dialog .row.end { justify-content: flex-end; margin-top: 1rem; }
 .users li { align-items: center; flex-wrap: wrap; gap: .5rem; padding: .6rem .8rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
 .users .meta { flex: 1; min-width: 10rem; }
 .users .btn { min-height: 40px; }
+
+/* Import en masse */
+.progress.big { height: 8px; border-radius: 99px; overflow: hidden; margin: .5rem 0; }
+.progress.big i { background: var(--grad); }
+.qtools { margin: .4rem 0 .8rem; }
+.queue .qi { display: flex; align-items: center; gap: .8rem; padding: .6rem .9rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.queue .meta { flex: 1; } .queue .meta b { text-transform: capitalize; }
+.qi .st { flex: none; width: 1.6rem; text-align: center; font-weight: 800; color: var(--muted); }
+.qi.ok .st { color: var(--ok); } .qi.error .st, .qi.error .meta .muted { color: var(--bad); } .qi.skip .st { color: var(--accent); } .qi.running { border-color: var(--accent); }
+.qi .btn.icon { min-height: 40px; min-width: 40px; }

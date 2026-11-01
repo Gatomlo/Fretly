@@ -3,7 +3,7 @@ import { SEED_SONGS } from './seed.js';
 const K = { songs: 'fretly.songs', sets: 'fretly.sets', deleted: 'fretly.deleted', settings: 'fretly.settings', seeded: 'fretly.seeded' };
 const DEFAULTS = {
   theme: 'auto', fontSize: 20, ref: 440, mode: 'scroll', strip: true, last: null,
-  sort: 'title', stage: false, showOrig: false, voicings: {}, voicingsTs: 0,
+  sort: 'title', importSource: '', stage: false, showOrig: false, voicings: {}, voicingsTs: 0,
 };
 
 function read(key, def) {

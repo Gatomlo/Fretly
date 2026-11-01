@@ -23,8 +23,11 @@ Même principe que Cabas / Fée Lezcomptes : e-mail + mot de passe (**scrypt**),
 - `/api/import` exige aussi un compte. Vues : `#/login[?invite=]`, `#/reset?token=`, section Compte des Réglages.
 - `data/` (comptes + données) n'est pas versionné : **à conserver lors des déploiements** (`FRETLY_DATA` pour le déplacer).
 
-## Import de partitions
-`GET /api/import?url=` (server.js, compte requis) → `lib/boiteachansons.js` lit une page `https://www.boiteachansons.net/partitions/…` (hôte et chemin en liste blanche) et la convertit en ChordPro (`div.pL` / `span.a[data-aff]`, ton et capo en champs cachés). Utilisé par l'éditeur (champ « Importer »). Sans serveur Node ni compte, l'import est indisponible (coller le texte + « Convertir »). Contenu soumis aux droits de ses ayants droit : usage personnel.
+## Import de partitions (plusieurs sources possibles)
+- **Registre** `lib/sources.js` : un site = un module (`checkUrl(raw)` valide l'adresse et lève une erreur sinon ; `parse(html)` renvoie `{title, artist, key, capo, tempo, body ChordPro}`) + une entrée dans `SOURCES`. L'éditeur et l'écran d'import proposent alors automatiquement le nouveau site. Source actuelle : `lib/boiteachansons.js` (`div.pL` / `span.a[data-aff]`, ton et capo en champs cachés).
+- API : `GET /api/import/sources` (public) ; `GET /api/import?url=&source=` (compte requis, 300/heure/compte, source détectée d'après l'adresse si absente, hôte et chemin en liste blanche).
+- **Import en masse** `#/import` (`views/import.js`) : choix de la source, adresses collées (une par ligne, extraites par `urls.js`) → **file d'attente** gardée sur l'appareil (`fretly.queue`) → « Importer » les traite une à une (pause 700 ms), reprise possible, échecs relançables, doublons repérés via `sourceUrl` (champ `source`/`sourceUrl` conservés sur la chanson, lien « Source » dans les options du lecteur). Éditeur : même choix de source pour un import unitaire.
+- Sans serveur Node ni compte, l'import est indisponible (coller le texte + « Convertir »). Contenu soumis aux droits de ses ayants droit : usage personnel.
 
 ## Pilotage mains libres (lecteur)
 Défilement auto en lignes/min avec compte à rebours 3 s (vitesse mémorisée par chanson) ; mode **pages** en colonnes CSS (tout tient à l'écran, tablette paysage) ; bandes tactiles larges sur les bords ; touche texte = pause ; pédales Bluetooth (flèches, PageUp/Down, Espace = pause, +/− vitesse) ; Wake Lock.

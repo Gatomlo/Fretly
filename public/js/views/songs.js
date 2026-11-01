@@ -45,7 +45,7 @@ export function mount(root) {
     <section class="page">
       <div class="page-head">
         <div class="brand"><img src="icon.svg" alt="" width="44" height="44"><div><h1>${greeting()} 🎸</h1><span class="muted small" id="count"></span></div></div>
-        <a class="btn primary" href="#/song/new">＋ Nouveau</a>
+        <div class="row"><a class="btn icon" href="#/import" aria-label="Importer des chansons" title="Importer">⬇</a><a class="btn primary" href="#/song/new">＋ Nouveau</a></div>
       </div>
       <div id="hero"></div>
       <div class="row tools">

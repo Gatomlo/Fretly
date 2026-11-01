@@ -307,6 +307,7 @@ export function mount(root, id, setId) {
       ${row('Métronome', `<button class="btn icon" data-a="bpm-">−</button><span class="val">${tempo}</span><button class="btn icon" data-a="bpm+">+</button><button class="btn" data-a="tap">Tap</button><button class="btn ${metro.running ? 'primary' : ''}" data-a="metro">${metro.running ? '⏸' : '▶'}</button>`)}
       ${row('Mode scène (noir, texte agrandi)', sw('stage', stage))}
       ${row('Favori', sw('fav', !!song.fav))}
+      ${/^https?:\/\//.test(song.sourceUrl || '') ? row('Source', `<a class="btn" href="${esc(song.sourceUrl)}" target="_blank" rel="noopener noreferrer">Ouvrir la page ↗</a>`) : ''}
       ${hasSections ? row('Vitesses par section', `<span class="muted small">${Object.keys(secSpeed).length} réglée(s)</span><button class="btn" data-a="resetsec" ${Object.keys(secSpeed).length ? '' : 'disabled'}>Réinitialiser</button>`) : ''}
       <div class="row end"><a class="btn" href="#/print/song/${id}">🖨 Imprimer</a><a class="btn" href="#/song/${id}/edit">✎ Modifier</a><button class="btn primary" data-a="close">Terminé</button></div>`;
   }

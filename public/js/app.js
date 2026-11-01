@@ -10,6 +10,7 @@ const ROUTES = [
   [/^#\/login(?:\?invite=([^&]+))?$/, 'login', 'settings'],
   [/^#\/reset\?token=([^&]+)$/, 'reset', 'settings'],
   [/^#\/print\/((?:set|song)\/[^/]+)$/, 'print', 'songs', true],
+  [/^#\/import$/, 'import', 'songs'],
   [/^#\/sets$/, 'sets', 'sets'],
   [/^#\/set\/([^/]+)$/, 'set', 'sets'],
   [/^#\/chords(?:\/(.+))?$/, 'bible', 'chords'],

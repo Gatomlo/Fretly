@@ -5,6 +5,7 @@ import { getChord, chordKey, fretsKey } from '../public/js/chords.js';
 import { parseSong, convertChordsOverLyrics, lyricLines, fold } from '../public/js/chordpro.js';
 import { suggestCapo, chordCost } from '../public/js/capo.js';
 import { createGuide } from '../public/js/guided.js';
+import { parseUrls, normalizeUrl } from '../public/js/urls.js';
 import { detectPitch } from '../public/js/pitch.js';
 
 test('reconnaissance des accords', () => {
@@ -92,4 +93,17 @@ test('paroles : lignes sans accords, recherche insensible aux accents', () => {
   assert.deepEqual(lines, ['Il était une fois', 'Été indien']);
   assert.equal(fold('Été Indien'), 'ete indien');
   assert.equal(fold('Œuvre').length, 'Œuvre'.length);
+});
+
+test("liste d'adresses : extraction, doublons, ponctuation", () => {
+  const text = [
+    'https://www.boiteachansons.net/partitions/radiohead/creep',
+    '  https://boiteachansons.net/partitions/radiohead/creep/  ',
+    'voir aussi https://www.boiteachansons.net/partitions/a/b, puis (https://www.boiteachansons.net/partitions/c/d).',
+    'pas une adresse',
+  ].join('\n');
+  const urls = parseUrls(text);
+  assert.deepEqual(urls, ['https://www.boiteachansons.net/partitions/radiohead/creep', 'https://www.boiteachansons.net/partitions/a/b', 'https://www.boiteachansons.net/partitions/c/d']);
+  assert.deepEqual(parseUrls(text, ['https://www.boiteachansons.net/partitions/a/b/']).length, 2, 'déjà dans la file');
+  assert.equal(normalizeUrl('https://WWW.Exemple.be/x/?a=1#z'), 'exemple.be/x');
 });
