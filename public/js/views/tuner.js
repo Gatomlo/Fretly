@@ -1,6 +1,6 @@
 import { detectPitch, midiOf, TUNINGS } from '../pitch.js';
 import { NOTES } from '../music.js';
-import { playMidi } from '../audio.js';
+import { playMidi, ding } from '../audio.js';
 import { settings } from '../store.js';
 
 const label = (m) => `${NOTES[m % 12]}${Math.floor(m / 12) - 1}`;
@@ -12,6 +12,9 @@ export function mount(root) {
   let stream, ctx, analyser, raf;
   const hist = [];
   let silent = 0;
+  let okSince = 0;
+  let dinged = false;
+  let muteUntil = 0;
 
   root.innerHTML = `
     <section class="tuner">
@@ -61,7 +64,8 @@ export function mount(root) {
 
   function show(freq) {
     if (!freq) {
-      if (++silent > 12) { $('note').textContent = '–'; $('hint').textContent = 'Jouez une corde'; $('freq').innerHTML = '&nbsp;'; $('needle').style.left = '50%'; root.firstElementChild.classList.remove('ok'); drawStrings(null); }
+      if (++silent > 12) {
+        okSince = 0; dinged = false; $('note').textContent = '–'; $('hint').textContent = 'Jouez une corde'; $('freq').innerHTML = '&nbsp;'; $('needle').style.left = '50%'; root.firstElementChild.classList.remove('ok'); drawStrings(null); }
       return;
     }
     silent = 0;
@@ -77,6 +81,11 @@ export function mount(root) {
     } else target = Math.round(m);
     const cents = (m - target) * 100;
     const ok = Math.abs(cents) < 5;
+    // Son de validation : accord juste et stable ~0,4 s, une seule fois jusqu'à ce qu'on s'en écarte
+    const now = performance.now();
+    if (!ok) { okSince = 0; if (Math.abs(cents) > 12) dinged = false; }
+    else if (!okSince) okSince = now;
+    else if (!dinged && now - okSince > 400) { dinged = true; muteUntil = now + 1100; ding(); }
     $('note').textContent = label(target);
     $('freq').textContent = `${f.toFixed(1)} Hz · ${cents > 0 ? '+' : ''}${cents.toFixed(0)} cents`;
     $('hint').textContent = ok ? 'Juste ✓' : cents < 0 ? 'Trop bas ↑ serrer' : 'Trop haut ↓ desserrer';
@@ -98,7 +107,7 @@ export function mount(root) {
     let last = 0;
     const loop = (t) => {
       raf = requestAnimationFrame(loop);
-      if (t - last < 40) return;
+      if (t - last < 40 || performance.now() < muteUntil) return; // pas d'écoute pendant le ding
       last = t;
       analyser.getFloatTimeDomainData(buf);
       show(detectPitch(buf, ctx.sampleRate));

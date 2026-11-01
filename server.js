@@ -2,12 +2,22 @@
 const express = require('express');
 const path = require('path');
 const { importFromUrl } = require('./lib/boiteachansons');
+const { sync } = require('./lib/sync');
 
 const app = express();
 // Import d'une partition boiteachansons.net (le navigateur ne peut pas l'appeler directement : CORS)
 app.get('/api/import', async (req, res) => {
   try {
     res.json(await importFromUrl(String(req.query.url || '')));
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+// Synchronisation entre appareils (code secret dans l'en-tête, pas de compte)
+app.post('/api/sync', express.json({ limit: '8mb' }), (req, res) => {
+  try {
+    res.json(sync(String(req.get('x-fretly-key') || ''), req.body));
   } catch (e) {
     res.status(400).json({ error: e.message });
   }

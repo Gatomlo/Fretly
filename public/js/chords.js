@@ -102,10 +102,22 @@ export function voicingsFor(rootName, quality, bassName = null) {
   return out.sort((a, b) => position(a) - position(b));
 }
 
-export function getChord(sym) {
+// Clé stable d'un accord (les alias partagent la même : A2 = Asus2)
+export function chordKey(sym) {
+  const c = parseChord(sym);
+  if (!c) return sym;
+  return NOTES[noteIndex(c.root)] + resolveQuality(c.suffix).quality + (c.bass ? `/${NOTES[noteIndex(c.bass)]}` : '');
+}
+export const fretsKey = (v) => v.frets.map((f) => (f === null ? 'x' : f)).join('.');
+
+// prefs : { [chordKey]: fretsKey } — la position préférée de l'utilisateur passe en premier
+export function getChord(sym, prefs = {}) {
   const c = parseChord(sym);
   if (!c) return null;
   const { quality, approx } = resolveQuality(c.suffix);
   const voicings = voicingsFor(c.root, quality, c.bass);
-  return voicings.length ? { symbol: sym, root: c.root, quality, bass: c.bass, approx, voicings } : null;
+  const pref = prefs[chordKey(sym)];
+  const at = pref ? voicings.findIndex((v) => fretsKey(v) === pref) : -1;
+  if (at > 0) voicings.unshift(...voicings.splice(at, 1));
+  return voicings.length ? { symbol: sym, root: c.root, quality, bass: c.bass, approx, preferred: at >= 0, voicings } : null;
 }

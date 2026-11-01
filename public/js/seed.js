@@ -1,6 +1,7 @@
 // Chansons du domaine public fournies au premier lancement (arrangements indicatifs)
 export const SEED_SONGS = [
   {
+    id: 'seed-amazing-grace',
     title: 'Amazing Grace',
     artist: 'Traditionnel (John Newton, 1779)',
     key: 'G',
@@ -25,6 +26,7 @@ And [G]grace will lead me [D]home [G]
 `,
   },
   {
+    id: 'seed-au-clair-de-la-lune',
     title: 'Au clair de la lune',
     artist: 'Traditionnel',
     key: 'C',

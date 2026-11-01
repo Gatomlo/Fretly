@@ -1,4 +1,5 @@
-import { getChord } from './chords.js';
+import { getChord, chordKey, fretsKey } from './chords.js';
+import { settings } from './store.js';
 import { chordSvg } from './diagram.js';
 import { strum } from './audio.js';
 
@@ -6,7 +7,7 @@ export const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '
 
 export function openChord(symbol, index = 0) {
   const dlg = document.getElementById('chord-dialog');
-  const chord = getChord(symbol);
+  const chord = getChord(symbol, settings.get().voicings);
   let i = index;
 
   const draw = () => {
@@ -14,6 +15,7 @@ export function openChord(symbol, index = 0) {
       dlg.innerHTML = `<h2>${esc(symbol)}</h2><p class="muted">Accord non répertorié.</p><button class="btn" data-close>Fermer</button>`;
     } else {
       const v = chord.voicings[i];
+      const mine = settings.get().voicings[chordKey(symbol)] === fretsKey(v);
       const n = chord.voicings.length;
       dlg.innerHTML = `
         <h2>${esc(symbol)}</h2>
@@ -26,6 +28,7 @@ export function openChord(symbol, index = 0) {
         ${chord.approx ? `<p class="muted small">Version simplifiée de ${esc(symbol)}</p>` : ''}
         <div class="row">
           <button class="btn primary" data-play>▶ Écouter</button>
+          <button class="btn${mine ? ' active' : ''}" data-pref aria-pressed="${mine}">${mine ? '★' : '☆'} Ma position</button>
           <button class="btn" data-close>Fermer</button>
         </div>`;
     }
@@ -35,6 +38,13 @@ export function openChord(symbol, index = 0) {
     const d = e.target.closest('[data-d]');
     if (d) { i = (i + Number(d.dataset.d) + chord.voicings.length) % chord.voicings.length; draw(); }
     if (e.target.closest('[data-play]')) strum(chord.voicings[i].frets);
+    if (e.target.closest('[data-pref]')) {
+      const prefs = { ...settings.get().voicings };
+      const key = chordKey(symbol);
+      if (prefs[key] === fretsKey(chord.voicings[i])) delete prefs[key]; else prefs[key] = fretsKey(chord.voicings[i]);
+      settings.set({ voicings: prefs });
+      draw();
+    }
   };
   draw();
   if (!dlg.open) dlg.showModal();

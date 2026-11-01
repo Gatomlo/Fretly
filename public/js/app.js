@@ -1,11 +1,13 @@
-import { settings } from './store.js';
+import { settings, sync } from './store.js';
 
 const ROUTES = [
   [/^#\/tuner$/, 'tuner', 'tuner'],
   [/^#\/songs$/, 'songs', 'songs'],
   [/^#\/song\/new$/, 'editor', 'songs'],
   [/^#\/song\/([^/]+)\/edit$/, 'editor', 'songs'],
-  [/^#\/song\/([^/]+)$/, 'reader', 'songs', true],
+  [/^#\/song\/([^/?]+)(?:\?set=([^&]+))?$/, 'reader', 'songs', true],
+  [/^#\/sets$/, 'sets', 'songs'],
+  [/^#\/set\/([^/]+)$/, 'set', 'songs'],
   [/^#\/chords(?:\/(.+))?$/, 'bible', 'chords'],
   [/^#\/settings$/, 'settings', 'settings'],
 ];
@@ -29,10 +31,13 @@ async function render() {
   const mod = await import(`./views/${name}.js`);
   if (mine !== token) return;
   const param = m[1] ? decodeURIComponent(m[1]) : null;
-  cleanup = mod.mount(view, param) || null;
+  cleanup = mod.mount(view, param, m[2] ? decodeURIComponent(m[2]) : null) || null;
 }
 
 document.documentElement.dataset.theme = settings.get().theme;
 addEventListener('hashchange', render);
 render();
+// Synchronisation au lancement ; on ne redessine que les écrans de liste (jamais pendant la lecture)
+sync.onChange = () => { if (/^#\/(songs|sets|set\/)/.test(location.hash || '#/songs')) render(); };
+sync.run().catch(() => {});
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

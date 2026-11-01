@@ -1,4 +1,4 @@
-import { settings, songs } from '../store.js';
+import { settings, songs, sync } from '../store.js';
 
 export function mount(root) {
   const s = settings.get();
@@ -10,6 +10,15 @@ export function mount(root) {
           <select id="theme">${[['auto', 'Automatique'], ['dark', 'Sombre'], ['light', 'Clair']].map(([v, l]) => `<option value="${v}"${s.theme === v ? ' selected' : ''}>${l}</option>`).join('')}</select>
         </label>
         <label>Diapason (La4, Hz) <input id="ref" type="number" min="425" max="450" value="${s.ref}"></label>
+        <h2>Synchronisation</h2>
+        <label>Code de synchronisation
+          <input id="skey" value="${s.syncKey}" autocomplete="off" spellcheck="false" placeholder="Identique sur tous vos appareils">
+        </label>
+        <div class="row">
+          <button class="btn" id="sgen">Générer un code</button>
+          <button class="btn primary" id="snow">Synchroniser</button>
+        </div>
+        <p class="muted small" id="sstate">Ce code est la clé de vos données sur le serveur : gardez-le privé, saisissez le même sur chaque appareil. Sans code, tout reste dans ce navigateur.</p>
         <h2>Sauvegarde</h2>
         <div class="row">
           <button class="btn" id="exp">Exporter mes chansons</button>
@@ -29,6 +38,21 @@ export function mount(root) {
   const $ = (id) => root.querySelector('#' + id);
   $('theme').onchange = (e) => settings.set({ theme: e.target.value });
   $('ref').onchange = (e) => settings.set({ ref: Math.min(450, Math.max(425, Number(e.target.value) || 440)) });
+  const state = $('sstate');
+  const doSync = async () => {
+    state.textContent = 'Synchronisation…';
+    try { await sync.run(); state.textContent = `Synchronisé à ${new Date().toLocaleTimeString('fr-BE', { hour: '2-digit', minute: '2-digit' })}.`; }
+    catch (e) { state.textContent = `Échec : ${e.message}`; }
+  };
+  $('skey').onchange = (e) => { settings.set({ syncKey: e.target.value.trim() }); if (e.target.value.trim()) doSync(); };
+  $('sgen').onclick = () => {
+    const bytes = crypto.getRandomValues(new Uint8Array(18));
+    const code = btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_');
+    $('skey').value = code;
+    settings.set({ syncKey: code });
+    doSync();
+  };
+  $('snow').onclick = () => (settings.get().syncKey ? doSync() : (state.textContent = "Saisissez ou générez d'abord un code."));
   $('exp').onclick = () => {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([songs.exportJson()], { type: 'application/json' }));

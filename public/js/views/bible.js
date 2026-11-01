@@ -2,6 +2,7 @@ import { NOTES, parseChord, noteIndex } from '../music.js';
 import { QUALITIES, getChord, normalizeQuality } from '../chords.js';
 import { chordSvg } from '../diagram.js';
 import { openChord } from '../chordDialog.js';
+import { settings } from '../store.js';
 
 export function mount(root, initial) {
   let root_ = 'C';
@@ -24,7 +25,7 @@ export function mount(root, initial) {
     $('roots').innerHTML = NOTES.map((n) => `<button class="chip${n === root_ ? ' on' : ''}" data-r="${n}">${n}</button>`).join('');
     $('quals').innerHTML = QUALITIES.map(([k, l]) => `<button class="chip${k === quality ? ' on' : ''}" data-q="${k}">${l}</button>`).join('');
     const sym = root_ + quality;
-    const chord = getChord(sym);
+    const chord = getChord(sym, settings.get().voicings);
     $('title').textContent = sym;
     $('grid').innerHTML = chord
       ? chord.voicings.map((v, i) => `<button class="card" data-i="${i}">${chordSvg(v, sym)}<span class="muted small">Position ${i + 1}</span></button>`).join('')

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { isChord, transposeChord } from '../public/js/music.js';
-import { getChord } from '../public/js/chords.js';
+import { getChord, chordKey, fretsKey } from '../public/js/chords.js';
 import { parseSong, convertChordsOverLyrics } from '../public/js/chordpro.js';
 import { detectPitch } from '../public/js/pitch.js';
 
@@ -34,6 +34,15 @@ test('notations A2 / E4 et accords étendus', () => {
   assert.equal(a11.approx, true);
   assert.ok(a11.voicings.length);
   assert.ok(getChord('F#m7b5').voicings.length);
+});
+
+test('position préférée : passe en premier, clé partagée par les alias', () => {
+  assert.equal(chordKey('A2'), chordKey('Asus2'));
+  const second = getChord('Bm').voicings[1];
+  const chord = getChord('Bm', { [chordKey('Bm')]: fretsKey(second) });
+  assert.deepEqual(chord.voicings[0].frets, second.frets);
+  assert.equal(chord.preferred, true);
+  assert.equal(getChord('Bm').preferred, false);
 });
 
 test('ChordPro', () => {

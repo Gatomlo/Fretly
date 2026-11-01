@@ -3,7 +3,7 @@ import { convertChordsOverLyrics } from '../chordpro.js';
 import { esc } from '../chordDialog.js';
 
 export function mount(root, id) {
-  const song = (id && songs.get(id)) || { title: '', artist: '', key: '', capo: 0, body: '' };
+  const song = (id && songs.get(id)) || { title: '', artist: '', key: '', capo: 0, tempo: 0, tags: [], body: '' };
   root.innerHTML = `
     <section class="page">
       <div class="page-head"><h1>${id ? 'Modifier' : 'Nouvelle chanson'}</h1></div>
@@ -19,7 +19,9 @@ export function mount(root, id) {
         <div class="row">
           <label>Tonalité <input name="key" size="4" value="${esc(song.key || '')}"></label>
           <label>Capo <input name="capo" type="number" min="0" max="12" value="${song.capo || 0}"></label>
+          <label>Tempo (BPM) <input name="tempo" type="number" min="30" max="260" value="${song.tempo || ''}"></label>
         </div>
+        <label>Étiquettes (séparées par des virgules) <input name="tags" value="${esc((song.tags || []).join(', '))}" placeholder="français, feu de camp…"></label>
         <label>Paroles et accords
           <textarea name="body" rows="16" spellcheck="false" placeholder="[Am]Paroles avec les [G]accords entre crochets">${esc(song.body)}</textarea>
         </label>
@@ -47,6 +49,7 @@ export function mount(root, id) {
       f.artist.value = data.artist;
       f.key.value = data.key;
       f.capo.value = data.capo;
+      f.tempo.value = data.tempo || '';
       f.body.value = data.body;
       msg.textContent = 'Importé : vérifiez puis enregistrez.';
     } catch (e) { msg.textContent = e.message; }
@@ -56,7 +59,7 @@ export function mount(root, id) {
   });
   f.onsubmit = (e) => {
     e.preventDefault();
-    const saved = songs.save({ ...song, title: f.title.value.trim(), artist: f.artist.value.trim(), key: f.key.value.trim(), capo: Number(f.capo.value) || 0, body: f.body.value });
+    const saved = songs.save({ ...song, title: f.title.value.trim(), artist: f.artist.value.trim(), key: f.key.value.trim(), capo: Number(f.capo.value) || 0, tempo: Number(f.tempo.value) || 0, tags: f.tags.value.split(',').map((t) => t.trim()).filter(Boolean), body: f.body.value });
     location.hash = `#/song/${saved.id}`;
   };
 }
