@@ -3,7 +3,7 @@ import { SEED_SONGS } from './seed.js';
 const K = { songs: 'fretly.songs', sets: 'fretly.sets', deleted: 'fretly.deleted', settings: 'fretly.settings', seeded: 'fretly.seeded' };
 const DEFAULTS = {
   theme: 'auto', fontSize: 20, ref: 440, mode: 'scroll', strip: true, last: null,
-  sort: 'title', stage: false, showOrig: false, syncKey: '', voicings: {}, voicingsTs: 0,
+  sort: 'title', stage: false, showOrig: false, voicings: {}, voicingsTs: 0,
 };
 
 function read(key, def) {
@@ -89,6 +89,9 @@ export const sets = {
   },
 };
 
+// État du compte (rempli par account.js) : la synchronisation n'a lieu que connecté
+export const account = { user: null, firstRun: false, available: true, loaded: false };
+
 let timer;
 export const sync = {
   onChange: null,
@@ -100,15 +103,15 @@ export const sync = {
     prefs: { voicings: settings.get().voicings, ts: settings.get().voicingsTs },
   }),
   schedule() {
-    if (!settings.get().syncKey) return;
+    if (!account.user) return;
     clearTimeout(timer);
     timer = setTimeout(() => sync.run().catch(() => {}), 1500);
   },
   // Envoie l'état local, reçoit l'état fusionné ; renvoie true si quelque chose a changé ici
   async run() {
-    const key = settings.get().syncKey;
-    if (!key) return false;
-    const res = await fetch('api/sync', { method: 'POST', headers: { 'content-type': 'application/json', 'x-fretly-key': key }, body: JSON.stringify(sync.state()) });
+    if (!account.user) return false;
+    const res = await fetch('api/sync', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(sync.state()) });
+    if (res.status === 401) { account.user = null; throw new Error('Session expirée : reconnectez-vous.'); }
     if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `Erreur ${res.status}`);
     const merged = await res.json();
     const before = JSON.stringify([songs.list(), sets.list()]);

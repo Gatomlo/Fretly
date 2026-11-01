@@ -293,3 +293,11 @@ dialog .row.end { justify-content: flex-end; margin-top: 1rem; }
   #view > * { animation: none !important; }
   .printdoc { max-width: none; margin: 0; padding: 0; box-shadow: none; }
 }
+
+/* Comptes */
+.error { color: var(--bad); min-height: 1.2em; margin: 0; font-weight: 600; }
+.who { display: flex; align-items: center; gap: .9rem; margin-bottom: .8rem; }
+.copy { font-size: .85rem; }
+.users li { align-items: center; flex-wrap: wrap; gap: .5rem; padding: .6rem .8rem; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r); }
+.users .meta { flex: 1; min-width: 10rem; }
+.users .btn { min-height: 40px; }

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-const { merge, KEY_RE } = createRequire(import.meta.url)('../lib/sync.js');
+const { merge, ID_RE } = createRequire(import.meta.url)('../lib/sync.js');
 
 const song = (id, updated, title = id) => ({ id, updated, title });
 
@@ -23,7 +23,7 @@ test('sync : une suppression plus récente efface, une modification plus récent
   assert.equal(m.deleted.a, 50);
 });
 
-test('sync : format du code', () => {
-  assert.ok(KEY_RE.test('abcd1234efgh5678'));
-  for (const k of ['court', 'a'.repeat(65), 'avec espace 1234567', '../../etc/passwd1234']) assert.ok(!KEY_RE.test(k), k);
+test("sync : format de l'identifiant de compte", () => {
+  assert.ok(ID_RE.test('0123456789abcdef0123456789abcdef'));
+  for (const k of ['court', 'ABCDEF0123456789ABCDEF0123456789', '../../etc/passwd1234567890123456', '0123456789abcdef0123456789abcdeg']) assert.ok(!ID_RE.test(k), k);
 });

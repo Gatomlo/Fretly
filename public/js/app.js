@@ -1,4 +1,5 @@
 import { settings, sync } from './store.js';
+import { loadSession } from './account.js';
 
 const ROUTES = [
   [/^#\/tuner$/, 'tuner', 'tuner'],
@@ -6,6 +7,8 @@ const ROUTES = [
   [/^#\/song\/new$/, 'editor', 'songs'],
   [/^#\/song\/([^/]+)\/edit$/, 'editor', 'songs'],
   [/^#\/song\/([^/?]+)(?:\?set=([^&]+))?$/, 'reader', 'songs', true],
+  [/^#\/login(?:\?invite=([^&]+))?$/, 'login', 'settings'],
+  [/^#\/reset\?token=([^&]+)$/, 'reset', 'settings'],
   [/^#\/print\/((?:set|song)\/[^/]+)$/, 'print', 'songs', true],
   [/^#\/sets$/, 'sets', 'sets'],
   [/^#\/set\/([^/]+)$/, 'set', 'sets'],
@@ -40,5 +43,5 @@ addEventListener('hashchange', render);
 render();
 // Synchronisation au lancement ; on ne redessine que les écrans de liste (jamais pendant la lecture)
 sync.onChange = () => { if (/^#\/(songs|sets|set\/)/.test(location.hash || '#/songs')) render(); };
-sync.run().catch(() => {});
+loadSession().then(() => sync.run()).catch(() => {});
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

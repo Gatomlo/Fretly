@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node --test test/*.test.mjs"
+    "test": "node --test test/*.test.mjs",
+    "set-password": "node scripts/set-password.js"
   },
   "dependencies": { "express": "^4.19.2" },
   "engines": { "node": ">=18" }
