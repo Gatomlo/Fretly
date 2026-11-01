@@ -1,8 +1,6 @@
 import { songs, settings } from '../store.js';
 import { esc } from '../chordDialog.js';
-
-const hash = (s) => [...s].reduce((h, c) => (h * 31 + c.charCodeAt(0)) >>> 0, 7);
-const cover = (s) => `<span class="cover c${hash(s.title + s.artist) % 8}">${esc(([...s.title.trim()].find((c) => /\p{L}|\d/u.test(c)) || '♪').toUpperCase())}</span>`;
+import { cover } from '../cover.js';
 const greeting = () => { const h = new Date().getHours(); return h < 5 || h >= 18 ? 'Bonsoir' : 'Bonjour'; };
 
 export function mount(root) {

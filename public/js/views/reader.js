@@ -3,6 +3,7 @@ import { parseSong } from '../chordpro.js';
 import { isChord, transposeChord, prefersFlats } from '../music.js';
 import { openChord, chordDialogOpen, esc } from '../chordDialog.js';
 import { getChord } from '../chords.js';
+import { cover, tintOf } from '../cover.js';
 import { chordSvg } from '../diagram.js';
 
 const NEXT_KEYS = ['ArrowRight', 'ArrowDown', 'PageDown'];
@@ -28,9 +29,10 @@ export function mount(root, id) {
   const flatsFor = () => (firstChord ? prefersFlats(transposeChord(firstChord, steps)) : false);
 
   root.innerHTML = `
-    <div class="reader">
+    <div class="reader t${tintOf(song)}">
       <header class="reader-bar">
         <a class="btn icon" href="#/songs" aria-label="Retour">‹</a>
+        ${cover(song, ' sm')}
         <div class="titles"><b id="t"></b><span class="muted small" id="sub"></span></div>
         <div class="grp"><button class="btn icon" data-a="tr-" aria-label="Descendre d'un demi-ton">♭</button><span id="tr" class="tr"></span><button class="btn icon" data-a="tr+" aria-label="Monter d'un demi-ton">♯</button></div>
         <div class="grp"><button class="btn icon" data-a="fs-" aria-label="Texte plus petit">A−</button><button class="btn icon" data-a="fs+" aria-label="Texte plus grand">A+</button></div>
@@ -38,6 +40,7 @@ export function mount(root, id) {
         <button class="btn icon" data-a="mode" id="modeBtn"></button>
         <a class="btn icon" href="#/song/${id}/edit" aria-label="Modifier">✎</a>
       </header>
+      <div class="progress" aria-hidden="true"><i id="prog"></i></div>
       <div class="stage">
         <div class="song-view" id="sv"><div class="song" id="song"></div></div>
         <button class="edge prev" tabindex="-1" data-a="prev" aria-label="Page précédente">‹</button>
@@ -69,13 +72,13 @@ export function mount(root, id) {
       if (l.type === 'blank') return '<div class="gap"></div>';
       if (l.type === 'section') return `<h3 class="sec">${esc(l.text)}</h3>`;
       const hasCh = l.segs.some((s) => s.chord !== null);
-      return `<div class="line${hasCh ? ' has-ch' : ''}">${l.segs.map((s) => {
+      return `<div class="line${hasCh ? ' has-ch' : ''}">${l.segs.map((s, i) => {
         let ch = '';
         if (s.chord !== null) {
           const name = isChord(s.chord) ? transposeChord(s.chord, steps, flats) : s.chord;
           ch = `<span class="ch${isChord(s.chord) ? '' : ' note'}" ${isChord(s.chord) ? `data-chord="${esc(name)}"` : ''}>${esc(name)}</span>`;
         } else if (hasCh) ch = '<span class="ch">&nbsp;</span>';
-        return `<span class="seg">${ch}<span class="ly">${esc(s.text)}</span></span>`;
+        return `<span class="seg">${ch}<span class="ly">${esc(i === 0 && s.chord === null ? s.text.trimStart() : s.text)}</span></span>`;
       }).join('')}</div>`;
     }).join('');
   }
@@ -108,6 +111,9 @@ export function mount(root, id) {
   let stripFrame = 0;
   function updateStrip() {
     stripFrame = 0;
+    const sc = mode === 'pages' ? songEl : sv;
+    const [pos_, max] = mode === 'pages' ? [sc.scrollLeft, sc.scrollWidth - sc.clientWidth] : [sc.scrollTop, sc.scrollHeight - sc.clientHeight];
+    $('#prog').style.width = `${max > 0 ? Math.min(100, (pos_ / max) * 100) : 0}%`;
     const box = (mode === 'pages' ? songEl : sv).getBoundingClientRect();
     const marker = box.top + box.height * READ_AT;
     // Ligne de lecture : celle que traverse le repère (mode défilement)

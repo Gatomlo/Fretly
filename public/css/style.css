@@ -188,3 +188,26 @@ dialog .row { justify-content: center; margin-top: .6rem; }
 
 .card .cd { transition: transform .2s; } .card:active .cd { transform: scale(.94); }
 dialog[open] { animation: rise .25s ease both; }
+
+/* ---- Lecteur : plus de caractère ---- */
+.reader { --tint: #ffb454; position: relative; }
+.t0 { --tint: #ffb454; } .t1 { --tint: #9b7bff; } .t2 { --tint: #2fd0c0; } .t3 { --tint: #ff7fa6; }
+.t4 { --tint: #3ddc84; } .t5 { --tint: #5aa9ff; } .t6 { --tint: #f7c948; } .t7 { --tint: #e0529c; }
+.reader::before { content: ""; position: absolute; inset: 0 0 auto 0; height: 55%; pointer-events: none; background: radial-gradient(70% 100% at 50% 0, color-mix(in srgb, var(--tint) 20%, transparent), transparent 75%); }
+.reader > * { position: relative; }
+.cover.sm { width: 38px; height: 38px; border-radius: 12px; font-size: 1.1rem; }
+.progress { height: 3px; background: var(--line); }
+.progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--tint), var(--accent2)); border-radius: 0 3px 3px 0; transition: width .15s linear; }
+
+/* Accords en pastilles, ligne en cours aérée, voisines atténuées */
+.ch { padding: .02em .42em .06em; margin: 0 .35em .08em 0; border-radius: 9px; background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.ch.note { background: none; }
+.line { padding: .22em .7em .26em; margin: 0 0 .3em -.7em; border-radius: 14px; transition: background .25s, opacity .25s, box-shadow .25s; }
+.reader:not(.mode-pages) .line { opacity: .62; }
+.reader:not(.mode-pages) .line.cur { opacity: 1; background: color-mix(in srgb, var(--tint) 16%, transparent); box-shadow: inset 4px 0 0 var(--tint), 0 4px 18px color-mix(in srgb, var(--tint) 14%, transparent); }
+.guide::before { border-left-color: var(--tint, var(--accent)); }
+.sec { color: var(--tint); background: color-mix(in srgb, var(--tint) 16%, transparent); }
+.grp .tr, .chordstrip .mini.now { color: var(--tint); }
+.chordstrip .mini.now { border-color: var(--tint); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tint) 40%, transparent), var(--shadow); }
+.ch { align-self: flex-start; }
+.ch:not([data-chord]) { background: none; }
