@@ -1,1 +1,22 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#111418"/><path d="M256 86c96 0 150 70 150 150 0 110-96 190-150 190S106 346 106 236c0-80 54-150 150-150z" fill="#ffb454"/><text x="256" y="300" font-family="system-ui,sans-serif" font-size="210" font-weight="800" text-anchor="middle" fill="#1a1204">F</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1d47"/><stop offset="1" stop-color="#0d0f14"/></linearGradient>
+    <linearGradient id="pick" x1="0.15" y1="0.05" x2="0.85" y2="0.95"><stop offset="0" stop-color="#ffc760"/><stop offset="1" stop-color="#ff6f61"/></linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".33"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/></linearGradient>
+    <filter id="sh" x="-30%" y="-30%" width="160%" height="170%"><feGaussianBlur stdDeviation="16"/></filter>
+    <path id="p" d="M256 84C360 84 424 130 410 214C398 296 322 400 256 436C190 400 114 296 102 214C88 130 152 84 256 84Z"/>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <g stroke="#fff" stroke-opacity=".08" stroke-width="2">
+    <path d="M96 0V512M160 0V512M224 0V512M288 0V512M352 0V512M416 0V512"/>
+    <path d="M0 150H512M0 270H512M0 390H512" stroke-width="3" stroke-opacity=".055"/>
+  </g>
+  <use href="#p" y="18" fill="#000" opacity=".6" filter="url(#sh)"/>
+  <use href="#p" fill="url(#pick)"/>
+  <use href="#p" fill="url(#gloss)"/>
+  <g fill="#1a1204">
+    <rect x="200" y="170" width="48" height="192" rx="18"/>
+    <rect x="200" y="170" width="132" height="48" rx="18"/>
+    <rect x="200" y="246" width="106" height="46" rx="18"/>
+  </g>
+</svg>
