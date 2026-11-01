@@ -28,9 +28,16 @@ export function mount(root) {
 
   function drawStrings(active) {
     const s = $('strings');
+    s.className = 'strings';
     if (!tuning.notes) { s.innerHTML = ''; return; }
-    s.innerHTML = tuning.notes.map((m, i) =>
-      `<button class="str${i === locked ? ' locked' : ''}${i === active ? ' on' : ''}" data-i="${i}">${label(m)}</button>`).join('');
+    const btn = (i) => `<button class="str${i === locked ? ' locked' : ''}${i === active ? ' on' : ''}" data-i="${i}">${label(tuning.notes[i])}</button>`;
+    if (tuning.notes.length === 6) {
+      // Tête de guitare : 3 mécaniques de chaque côté
+      s.className = 'strings head';
+      s.innerHTML = `<div class="col">${[2, 1, 0].map(btn).join('')}</div>
+        <div class="neck" aria-hidden="true">${[0, 1, 2, 3, 4, 5].map((i) => `<i class="${i === active ? 'on' : ''}"></i>`).join('')}</div>
+        <div class="col">${[3, 4, 5].map(btn).join('')}</div>`;
+    } else s.innerHTML = tuning.notes.map((_, i) => btn(i)).join('');
   }
   drawStrings(null);
 

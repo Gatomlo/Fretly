@@ -13,6 +13,7 @@ const LINE_EM = 2.7; // hauteur moyenne d'une ligne accords+paroles, en em
 export function mount(root, id) {
   const song = songs.get(id);
   if (!song) { location.hash = '#/songs'; return; }
+  settings.set({ last: id });
   const parsed = parseSong(song.body);
   let steps = song.transpose || 0;
   let lpm = song.speed || 12; // lignes par minute

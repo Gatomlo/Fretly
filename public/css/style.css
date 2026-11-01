@@ -152,3 +152,39 @@ dialog .row { justify-content: center; margin-top: .6rem; }
 .reader:not(.mode-pages) .guide { display: block; }
 .line { border-radius: 10px; transition: background .2s; }
 .line.cur { background: color-mix(in srgb, var(--accent) 13%, transparent); box-shadow: inset 4px 0 0 var(--accent); }
+
+/* ---- Habillage plus vivant ---- */
+@keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+#view > * { animation: rise .35s ease both; }
+.brand { display: flex; align-items: center; gap: .8rem; }
+.brand img { border-radius: 14px; box-shadow: 0 6px 18px color-mix(in srgb, var(--accent2) 35%, transparent); }
+.brand h1 { font-size: 1.5rem; line-height: 1.1; }
+
+.cover { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 16px; color: #fff; font-weight: 800; font-size: 1.5rem; text-shadow: 0 1px 6px rgba(0, 0, 0, .25); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .18); }
+.c0 { background: linear-gradient(135deg, #ffb454, #ff7a59); } .c1 { background: linear-gradient(135deg, #7c5cff, #c264fe); }
+.c2 { background: linear-gradient(135deg, #1fc8b4, #2c8cf4); } .c3 { background: linear-gradient(135deg, #ff6b9a, #ff9a5a); }
+.c4 { background: linear-gradient(135deg, #3ddc84, #1aa3a0); } .c5 { background: linear-gradient(135deg, #4facfe, #7c5cff); }
+.c6 { background: linear-gradient(135deg, #f7c948, #ef6c3c); } .c7 { background: linear-gradient(135deg, #e0529c, #7c3aed); }
+.meta { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.meta b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list li > a.song { flex-wrap: nowrap; gap: .9rem; }
+.list li > a.song .meta { flex: 1; }
+
+.hero { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; padding: 1rem; border-radius: 24px; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, var(--surface)), var(--surface)); border: 1px solid var(--line); box-shadow: var(--shadow); }
+.hero .cover { width: 68px; height: 68px; font-size: 2rem; border-radius: 20px; }
+.hero .meta { flex: 1; } .hero .meta b { font-size: 1.25rem; white-space: normal; }
+.hero small { color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; font-size: .7rem; }
+.hero .go { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--grad); color: var(--on-accent); box-shadow: 0 6px 18px color-mix(in srgb, var(--accent2) 40%, transparent); }
+.empty-state { display: flex; flex-direction: column; align-items: center; gap: .3rem; padding: 2.5rem 1rem; text-align: center; }
+.empty-state div { font-size: 3rem; }
+
+/* Accordeur : tête de guitare */
+.strings.head { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .6rem; width: 100%; max-width: 360px; }
+.strings .col { display: flex; flex-direction: column; gap: .8rem; }
+.strings.head .str { width: 64px; border-radius: 50%; min-height: 64px; }
+.neck { position: relative; align-self: stretch; min-height: 230px; display: flex; justify-content: space-evenly; padding: 18px 10px 0; border-radius: 40px 40px 12px 12px; background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 30%, #3a2412), #2a1a0e 70%); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .1), var(--shadow); }
+.neck i { width: 2px; height: 100%; border-radius: 1px; background: linear-gradient(180deg, #e8e8ee, #8a8a99); opacity: .75; }
+.neck i.on { width: 4px; background: var(--accent); opacity: 1; box-shadow: 0 0 12px var(--accent); }
+
+.card .cd { transition: transform .2s; } .card:active .cd { transform: scale(.94); }
+dialog[open] { animation: rise .25s ease both; }
