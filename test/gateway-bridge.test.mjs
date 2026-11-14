@@ -57,3 +57,12 @@ test('compte local choisi par l\'administrateur de la passerelle (e-mail differe
   assert.equal((await (await session(withLocal(null, 'THOMAS@exemple.be'))).json()).user.email, 'thomas@exemple.be', 'meme sans e-mail cote passerelle');
   assert.equal((await (await session(withLocal('thomas@exemple.be', 'inconnu@exemple.be'))).json()).user, null, 'pas de repli sur l\'e-mail identique');
 });
+
+test('crochet gatewayAccounts : liste des comptes pour l\'administration de la passerelle, sans aucun secret', () => {
+  const list = app.gatewayAccounts();
+  assert.ok(Array.isArray(list) && list.length >= 1, 'au moins un compte');
+  for (const a of list) {
+    assert.ok(a.key, 'cle a saisir dans « compte local »');
+    assert.doesNotMatch(JSON.stringify(a), /hash|passw|token|secret|scrypt|bcrypt/i);
+  }
+});

@@ -47,4 +47,7 @@ if (require.main === module) {
   app.listen(PORT, () => console.log(`Fretly sur http://localhost:${PORT}`));
 }
 
+// Liste des comptes pour l'administration de node-gateway (lecture seule, facultatif : voir node-gateway/README).
+app.gatewayAccounts = () => auth.listAccounts();
+
 module.exports = app;
