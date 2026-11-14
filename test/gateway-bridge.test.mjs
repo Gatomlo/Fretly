@@ -50,3 +50,10 @@ test('aucun compte cree : e-mail inconnu, sans e-mail, anonyme ou sans droit => 
   const { users } = JSON.parse(require('node:fs').readFileSync(join(dir, 'auth.json'), 'utf8'));
   assert.equal(users.length, 1);
 });
+
+test('compte local choisi par l\'administrateur de la passerelle (e-mail different) ; un mauvais choix n\'ouvre rien', async () => {
+  const withLocal = (email, local) => ({ 'x-test-gateway': JSON.stringify({ app: 'fretly', role: 'member', local, user: { login: 'x', name: 'X', email, isSuper: false } }) });
+  assert.equal((await (await session(withLocal('autre@perso.be', 'thomas@exemple.be'))).json()).user.email, 'thomas@exemple.be', 'rattache a un e-mail different');
+  assert.equal((await (await session(withLocal(null, 'THOMAS@exemple.be'))).json()).user.email, 'thomas@exemple.be', 'meme sans e-mail cote passerelle');
+  assert.equal((await (await session(withLocal('thomas@exemple.be', 'inconnu@exemple.be'))).json()).user, null, 'pas de repli sur l\'e-mail identique');
+});
