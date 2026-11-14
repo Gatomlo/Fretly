@@ -49,3 +49,5 @@ Chanson : `{id, title, artist, key, capo, body (ChordPro), transpose, speed, upd
 
 ## Méthode de travail
 Tests d'abord sur les modules purs, puis vérification dans le navigateur. Pistes : Web MIDI/gamepad pour pédales, tuning ukulele/basse, icônes PNG, IndexedDB si gros carnets.
+
+- Connexion centralisée (node-gateway) : `lib/gateway-bridge.js` (copie de `node-gateway/docs/gateway-bridge.js`) + `loadUser` dans `lib/auth.js`. Si la passerelle fournit `req.gateway` (droit sur cet outil), l'identité est rattachée au compte local **de même e-mail** (aucun compte créé) via une session locale de 2 h renouvelée en silence. Hors passerelle : sans effet. Test : `test/gateway-bridge.test.mjs`.
